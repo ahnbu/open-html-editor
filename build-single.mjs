@@ -6,7 +6,7 @@
 // They are concatenated in the order below, so a file may use names declared in an earlier file.
 // Usage: node build-single.mjs [--out <file>]
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,6 +30,31 @@ export const VENDOR = ['src/landing/vendor/gsap.min.js'];
 const read = (f) => { try { return readFileSync(join(H, f), 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } };
 const files = (list) => list.map((f) => [f, read(f)]).filter(([, t]) => t != null);
 const js = (t) => t.replace(/<\/script/gi, '<\\/script');
+// 시연용 장 묶음(tools/landing-deck*.html)을 16:9 완결 덱 문서로 감싼다. 장마다 class="slide"를 달고 첫 장만 보이게 한다(좌우 방향키로 넘김).
+const wrapDeck = (frag, lang) => {
+  const secs = frag.replace(/<!--[\s\S]*?-->\s*/, '').split(/(?=<section[\s>])/).filter((x) => x.startsWith('<section'));
+  if (!secs.length) return '';
+  const body = secs.map((x, i) => x.replace(/^<section/, `<section class="slide${i ? '' : ' on'}"`)).join('\n');
+  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${JSON.parse(read('src/i18n/' + lang + '.json'))['land.exName'].replace(/\.html$/, '')}</title>
+<style>
+html,body{margin:0;height:100%;background:#E9EBF0;overflow:hidden;font-family:Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;word-break:keep-all}
+#deck{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+section.slide{position:absolute;left:0;top:0;overflow:hidden;display:none}
+section.slide.on{display:block}
+</style></head><body>
+<div id="deck">
+${body}
+</div>
+<script>
+(function(){var d=document.getElementById('deck'),s=[].slice.call(document.querySelectorAll('section.slide')),i=0;
+function fit(){var k=Math.min(innerWidth/1920,innerHeight/1080);d.style.transform='translate('+((innerWidth-1920*k)/2)+'px,'+((innerHeight-1080*k)/2)+'px) scale('+k+')'}
+function go(n){i=Math.max(0,Math.min(s.length-1,n));s.forEach(function(e,j){e.classList.toggle('on',j===i)})}
+addEventListener('resize',fit);fit();
+addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')go(i+1);if(e.key==='ArrowLeft'||e.key==='PageUp')go(i-1)});
+window.deckGo=go;})();
+</script>
+</body></html>`;
+};
 
 export function build() {
   let html = read('editor.html');
@@ -40,8 +65,8 @@ export function build() {
     `<script>window.HE_I18N=${js(JSON.stringify(dict))};</script>`,
     ...files(BOOT).map(([, t]) => `<script>\n${js(t)}</script>`),
     `<script>\n(function () {\n'use strict';\n${files(CORE).map(([f, t]) => `// ---- ${f}\n${js(t)}`).join('\n')}\n})();\n</script>`,
-    // 첫 화면 「예시」 버튼이 여는 16:9 완결 덱(계획 _docs/20261105_04 2d). 시연 녹화는 tools/demo-deck.html을 따로 쓴다. 외부 요청 없이 파일 안에 넣는다.
-    `<script>window.HE_EXAMPLE=${js(JSON.stringify(read('tools/example-deck.html') || ''))};</script>`,
+    // 첫 화면 「샘플로 바로 둘러보기」 버튼이 여는 덱 = 시연 창과 같은 공익활동AI교육 덱(tools/landing-deck*.html 장을 완결 문서로 감싼다). 영어 화면은 영어판. 옛 예시 덱은 tools/_archive/example-deck.html에 보관. 외부 요청 없이 파일 안에 넣는다.
+    `<script>window.HE_EXAMPLE=${js(JSON.stringify(wrapDeck(read('tools/landing-deck.html') || '', 'ko')))};window.HE_EXAMPLE_EN=${js(JSON.stringify(wrapDeck(read('tools/landing-deck.en.html') || '', 'en')))};</script>`,
     // 첫 화면 아래 시연 창에 띄우는 실제 강의 덱 장(tools/landing-deck.html, 사진 없는 장만)
     `<script>window.HE_LANDDECK=${js(JSON.stringify((read('tools/landing-deck.html') || '').replace(/<!--[\s\S]*?-->\s*/, '')))};</script>`,
     // 영어 화면에서는 같은 자리 구성의 영어판 장(tools/landing-deck.en.html)을 띄운다. 없으면 한국어 장을 쓴다
@@ -49,6 +74,9 @@ export function build() {
     ...files(VENDOR).map(([f, t]) => `<script data-src="${f}">\n${js(t)}</script>`),
     `<script>\n(function () {\n${files(UI).map(([f, t]) => `// ---- ${f}\n${js(t)}`).join('\n')}\n})();\n</script>`,
   ].join('\n');
+  // Head tags (title, description, og:*) hold Korean text from the dictionary: {{ko:key}} is filled from ko.json here, so no Korean sits in editor.html.
+  const esc = (v) => v.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  html = html.replace(/\{\{ko:([\w.]+)\}\}/g, (m, k) => { if (dict.ko[k] == null) throw new Error('editor.html: unknown key ' + k); return esc(dict.ko[k]); });
   return html.replace('<!--build:css-->', () => css).replace('<!--build:js-->', () => scripts);
 }
 
@@ -78,5 +106,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   html = html.replace('<script>window.HE_I18N=', () => `<script>window.HE_BUILD='${version}';</script>\n<script>window.HE_I18N=`);
   writeFileSync(out, html);
   writeFileSync(join(dirname(out), 'sw.js'), serviceWorker(version));
+  // Link-card image (og:image in editor.html). A plain static file next to the page; not part of the single-file app.
+  if (existsSync(join(H, 'static', 'og.png'))) copyFileSync(join(H, 'static', 'og.png'), join(dirname(out), 'og.png'));
   console.log('built:', out.replace(H + '/', ''), Math.round(html.length / 1024) + 'KB', 'version', version);
 }

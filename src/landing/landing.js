@@ -6,13 +6,16 @@
 const L = $('#land'), G = window.gsap, still = matchMedia('(prefers-reduced-motion: reduce)').matches, mob = matchMedia('(max-width:720px)');
 const css = (n) => getComputedStyle(L).getPropertyValue(n).trim();
 
-// ── 열기: 「HTML 파일 열기」(위·아래 두 곳)는 파일 고르기, 「샘플로 바로 둘러보기」는 예시 덱(HE_EXAMPLE, 외부 요청 없음)
+// ── 열기: 「HTML 파일 열기」(위·아래 두 곳)는 파일 고르기, 「샘플로 바로 둘러보기」는 시연 창과 같은 공익활동AI교육 덱(HE_EXAMPLE, 영어 화면은 HE_EXAMPLE_EN, 외부 요청 없음)
 const pick = () => $('#openFile').click();
 $('#drop').addEventListener('click', pick);
 L.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', pick));
 [$('#bExample'), ...L.querySelectorAll('[data-example]')].forEach((b) => {
   if (!window.HE_EXAMPLE) b.hidden = true;
-  else b.addEventListener('click', () => H.openText(window.HE_EXAMPLE, t('land.exName'), new Map()));
+  else b.addEventListener('click', () => {
+    const en = window.HE_LANG && window.HE_LANG.get() === 'en' && window.HE_EXAMPLE_EN;
+    H.openText(en ? window.HE_EXAMPLE_EN : window.HE_EXAMPLE, t('land.exName'), new Map());
+  });
 });
 
 // ── 언어 메뉴(지구본). 고르는 단추는 [data-lang]이라 i18n.js가 언어를 바꾼다
