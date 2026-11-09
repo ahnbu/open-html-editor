@@ -90,3 +90,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions, testing p
 Released under the [MIT License](LICENSE).
 
 The landing page animation uses [GSAP](https://gsap.com) 3.15.1 (`src/landing/vendor/gsap.min.js`), distributed under GreenSock's [Standard "No Charge" License](https://gsap.com/standard-license), not the MIT License.
+
+---
+
+**Made by [Byungwook An](https://github.com/ahnbu)** — AI workflow strategist & founder of [PlanningHigh](https://planninghigh.com). Connect on [LinkedIn](https://www.linkedin.com/in/byungwook-an).
