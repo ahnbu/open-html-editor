@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Helper for the open-html-editor skill. No dependencies.
-//   find [dir ...]   recent .html files (last 3 days) that contain an Open HTML Editor comment block, newest first
+//   find [dir ...]   recent .html files (last 3 days) that contain an Openditor comment block, newest first
 //   list <file>      the comments in that file as JSON (count + items)
 //   backup <file>    copy the file to _편집백업/<name>_<timestamp>.html next to it, print the backup path
 // Comment block format: docs/comment-format.md in https://github.com/ahnbu/open-html-editor

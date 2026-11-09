@@ -1,6 +1,6 @@
 # Comment block format (version 1)
 
-Open HTML Editor stores review comments **inside the saved HTML file**, as one JSON block right before `</body>`.
+Openditor stores review comments **inside the saved HTML file**, as one JSON block right before `</body>`.
 The block does nothing in the browser (it is `type="application/json"`), so the file still opens and presents normally.
 Any tool or AI can read it, apply the comments, and delete the block.
 
@@ -11,7 +11,7 @@ Any tool or AI can read it, apply the comments, and delete the block.
 {
  "format": "open-html-editor/comments",
  "version": 1,
- "about": "Open HTML Editor comments (docs/comment-format.md). Apply each item, then delete this block.",
+ "about": "Openditor comments (docs/comment-format.md). Apply each item, then delete this block.",
  "comments": [
   {
    "id": "cm3k2a9x1",

@@ -82,7 +82,7 @@ export function build() {
 
 // Offline support for the site (plan 5b): network first, last copy from cache when offline.
 // The version is a hash of the page, so each deploy replaces the old cache.
-export const serviceWorker = (version) => `// Built by build-single.mjs. Open HTML Editor offline cache.
+export const serviceWorker = (version) => `// Built by build-single.mjs. Openditor offline cache.
 const VERSION = '${version}', CACHE = 'ohe-' + VERSION;
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./'])).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('ohe-') && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });

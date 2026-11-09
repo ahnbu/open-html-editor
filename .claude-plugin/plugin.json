@@ -1,6 +1,6 @@
 {
   "name": "open-html-editor",
-  "description": "Apply review comments left in Open HTML Editor: reads the comment block from the saved HTML file, edits that file, backs it up first, and removes the block when done.",
+  "description": "Apply review comments left in Openditor: reads the comment block from the saved HTML file, edits that file, backs it up first, and removes the block when done.",
   "version": "0.1.0",
   "author": { "name": "ahnbu" },
   "homepage": "https://github.com/ahnbu/open-html-editor",

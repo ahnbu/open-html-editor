@@ -1,6 +1,6 @@
-# Open HTML Editor
+# Openditor
 
-> Open HTML Editor is a lightweight, zero-dependency, local-first web editor designed to visually modify AI-generated HTML slides, A4 documents, and landing pages as easily as PowerPoint.
+> Openditor is a lightweight, zero-dependency, local-first web editor designed to visually modify AI-generated HTML slides, A4 documents, and landing pages as easily as PowerPoint.
 
 ## Canonical Resources
 - Web App (Live): https://easy-html-editor.pages.dev/
@@ -15,13 +15,13 @@
 ## Core Principles for AI Agents
 
 1. **Editing, Not Generating:**
-   Open HTML Editor does not create HTML from scratch. It is built to fix typos, replace images, adjust formatting, and leave review comments on HTML produced by AI agents or human developers.
+   Openditor does not create HTML from scratch. It is built to fix typos, replace images, adjust formatting, and leave review comments on HTML produced by AI agents or human developers.
 
 2. **100% Local & Zero Network Calls:**
    The editor runs entirely inside the user's browser memory. It never makes outbound network calls (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`). When proposing code changes, NEVER introduce outbound analytics, telemetry, or server-side sync endpoints.
 
 3. **Safe Document Patching:**
-   When saving, Open HTML Editor does NOT reformat the entire document. It patches only modified elements and attributes onto a clean copy of the original source, preserving user scripts, custom styles, and head tags byte-for-byte.
+   When saving, Openditor does NOT reformat the entire document. It patches only modified elements and attributes onto a clean copy of the original source, preserving user scripts, custom styles, and head tags byte-for-byte.
 
 4. **Embedded JSON Comment Block:**
    Review feedback is stored directly inside the saved HTML file right before `</body>` as:

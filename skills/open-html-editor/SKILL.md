@@ -1,11 +1,11 @@
 ---
 name: open-html-editor
-description: Apply review comments that were left in Open HTML Editor. Use when the user says "apply the comments in the file I just saved", "reflect my Open HTML Editor comments", "방금 저장한 파일 코멘트 반영해 줘", or points to an HTML file that contains a <script id="he-comments"> block. Reads the comments from the saved HTML, shows them, edits that file directly, backs it up first, and removes the comment block when done.
+description: Apply review comments that were left in Openditor. Use when the user says "apply the comments in the file I just saved", "reflect my Openditor comments", "방금 저장한 파일 코멘트 반영해 줘", or points to an HTML file that contains a <script id="he-comments"> block. Reads the comments from the saved HTML, shows them, edits that file directly, backs it up first, and removes the comment block when done.
 ---
 
-# Apply Open HTML Editor comments
+# Apply Openditor comments
 
-Open HTML Editor (https://github.com/ahnbu/open-html-editor) lets people fix AI-made HTML by hand and pin comments for bigger changes.
+Openditor (https://github.com/ahnbu/open-html-editor) lets people fix AI-made HTML by hand and pin comments for bigger changes.
 Saved files carry the comments in one JSON block before `</body>` — format: `docs/comment-format.md` in the repository.
 This skill lets the AI you are already talking to apply those comments. No server, no MCP.
 
@@ -31,7 +31,7 @@ This skill lets the AI you are already talking to apply those comments. No serve
    ```bash
    node "<this skill folder>/scripts/comments.mjs" list <file.html>   # prints 0 comments when done
    ```
-   Tell the user to reopen the file in Open HTML Editor to check.
+   Tell the user to reopen the file in Openditor to check.
 
 ## Notes
 

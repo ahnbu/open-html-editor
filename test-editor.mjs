@@ -314,7 +314,7 @@ if (capDir) { // 상태별 캡처
   if (capDir) { // 계획 「화면 검수」 표의 구현 캡처(편집 화면은 예시 덱으로)
     const e = await ctx.newPage(); await e.goto(EDITOR); await e.click('#bExample'); await e.waitForFunction(() => window.HE.S.doc && window.HE.slides().length > 0); await e.waitForTimeout(800);
     await shot(e, 'editor_1280.png');
-    const sel = await e.evaluate(() => { const d = window.HE.S.doc, el = d.querySelector('h1.t'), f = document.querySelector('#stage').getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: f.left + r.left + r.width / 2, y: f.top + r.top + r.height / 2 }; });
+    const sel = await e.evaluate(() => { const d = window.HE.S.doc, el = d.querySelector('h1.t') || d.querySelector('[data-demo="title"]'), f = document.querySelector('#stage').getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: f.left + r.left + r.width / 2, y: f.top + r.top + r.height / 2 }; });
     await e.mouse.click(sel.x, sel.y); await e.waitForTimeout(200); await shot(e, 'selected_1280.png');
     await e.click('#bColor'); await e.waitForTimeout(150); await shot(e, 'color_menu_1280.png'); await e.mouse.click(5, 895);
     await e.click('#bMore'); await e.waitForTimeout(150); await shot(e, 'more_1280.png'); await e.mouse.click(5, 895);

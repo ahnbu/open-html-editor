@@ -9,7 +9,7 @@ const cleanComments = () => S.comments.filter((c) => c.text && c.text.trim());
 function withComments(text) {
   text = text.replace(CBLOCK, ''); const list = cleanComments(); if (!list.length) return text;
   // version 1 = docs/comment-format.md. 판 번호가 없는 옛 파일도 그대로 읽는다(readComments).
-  const block = '\n<script type="application/json" id="he-comments">' + JSON.stringify({ format: 'open-html-editor/comments', version: COMMENT_FORMAT_VERSION, about: 'Open HTML Editor comments (docs/comment-format.md). Apply each item, then delete this block.', comments: list }, null, 1).replace(/<\//g, '<\\/') + '</script>\n';
+  const block = '\n<script type="application/json" id="he-comments">' + JSON.stringify({ format: 'open-html-editor/comments', version: COMMENT_FORMAT_VERSION, about: 'Openditor comments (docs/comment-format.md). Apply each item, then delete this block.', comments: list }, null, 1).replace(/<\//g, '<\\/') + '</script>\n';
   return /<\/body>/i.test(text) ? text.replace(/<\/body>(?![\s\S]*<\/body>)/i, block + '</body>') : text + block;
 }
 function readComments(text) {

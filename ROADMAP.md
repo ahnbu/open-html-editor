@@ -1,6 +1,6 @@
-# Open HTML Editor Roadmap
+# Openditor Roadmap
 
-This document outlines the development direction, scope boundaries, and milestones for Open HTML Editor.
+This document outlines the development direction, scope boundaries, and milestones for Openditor.
 
 ---
 

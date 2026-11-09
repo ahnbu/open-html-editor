@@ -2,14 +2,14 @@
   "name": "open-html-editor",
   "owner": { "name": "ahnbu" },
   "metadata": {
-    "description": "Open HTML Editor: edit AI-generated HTML like PowerPoint. Optional skill to apply editor comments with your AI.",
+    "description": "Openditor: edit AI-generated HTML like PowerPoint. Optional skill to apply editor comments with your AI.",
     "version": "0.1.0"
   },
   "plugins": [
     {
       "name": "open-html-editor",
       "source": "./",
-      "description": "Apply review comments left in Open HTML Editor to the saved HTML file.",
+      "description": "Apply review comments left in Openditor to the saved HTML file.",
       "version": "0.1.0",
       "author": { "name": "ahnbu" },
       "license": "MIT",

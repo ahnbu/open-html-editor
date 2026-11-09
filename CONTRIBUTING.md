@@ -1,6 +1,6 @@
-# Contributing to Open HTML Editor
+# Contributing to Openditor
 
-Thank you for your interest in contributing to Open HTML Editor!
+Thank you for your interest in contributing to Openditor!
 
 ## Core Philosophy
 
