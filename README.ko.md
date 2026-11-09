@@ -16,7 +16,7 @@ AI는 슬라이드, 보고서, 랜딩 페이지 HTML을 몇 초 만에 만들어
 
 ### [웹에서 바로 사용하기: easy-html-editor.pages.dev](https://easy-html-editor.pages.dev/)
 
-![Open HTML Editor 시연](docs/demo.gif)
+![Open HTML Editor 시연](docs/demo.ko.gif)
 
 ---
 
