@@ -24,7 +24,7 @@ AI creates impressive HTML slides, reports, and landing pages in seconds. But tw
 
 - **No installation or account:** Open the URL, drag and drop your `.html` file (or a folder containing images), and start editing in ~0.16s.
 - **Runs entirely in your browser:** The editor itself never sends any network requests. All parsing, rendering, and patching happen locally in browser memory.
-- **Fully offline-capable:** Cached via Service Worker. Once loaded, it works without an internet connection. You can also download `public/index.html` (~370KB) and double-click it anywhere.
+- **Fully offline-capable:** Cached via Service Worker. Once loaded, it works without an internet connection. You can also download `public/index.html` (~530KB) and double-click it anywhere.
 - **Original file safety:** Saves initially as `filename_edit.html` without overwriting the original. Once you use "Save As", subsequent saves write directly to that chosen file.
 
 ---
