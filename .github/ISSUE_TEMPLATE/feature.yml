@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an editing improvement (please read ROADMAP.md first)
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is hard today
+      description: The edit you were trying to make and why it was slow or impossible.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This is about editing existing HTML (not generating it, not PPTX export, not a server feature). See ROADMAP.md.
+          required: true

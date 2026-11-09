@@ -1,0 +1,39 @@
+# Tests run on every pull request and every push to main. This repository does not deploy.
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Browser
+        run: |
+          npm install -g playwright
+          node "$(npm root -g)/playwright/cli.js" install --with-deps chromium
+      - name: Screen text and public tree checks
+        run: |
+          node tools/check-i18n.mjs
+          node tools/check-public.mjs
+      - name: Build the single file
+        run: node build-single.mjs
+      - name: Editor tests
+        run: node test-editor.mjs
+      - name: Documents, AI handoff, save state
+        run: node test-docs.mjs
+      - name: Network (editor sends nothing; document fetch/beacon/form blocked)
+        run: node test-security.mjs
+      - name: Offline, size budget, open speed
+        run: node test-site.mjs

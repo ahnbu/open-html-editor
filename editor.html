@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#141210">
+<title data-i18n="app.title"></title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF5B14'/%3E%3Crect x='7' y='9' width='18' height='13' rx='2' fill='none' stroke='white' stroke-width='2.4'/%3E%3Cpath d='m12 18 4-4 4 4' fill='none' stroke='%23FF6B47' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<!-- Source template. Do not open this file directly: run `node build-single.mjs` and open public/index.html. -->
+<!--build:css-->
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#FF5B14"/><rect x="7" y="9" width="18" height="13" rx="2" fill="none" stroke="#fff" stroke-width="2.4"/><path d="m12 18 4-4 4 4" fill="none" stroke="#FF6B47" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol></defs></svg>
+<div id="land">
+<!-- 첫 화면(승인 시안 _docs/20261105_16_첫화면-발산/1_거대타이포_v2/b.html, 먹색 B안). 움직임은 src/landing/landing.js(GSAP), 문구는 land.* 키 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <symbol id="l-lg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" style="fill:var(--lgBg)"/><rect x="7" y="9" width="18" height="13" rx="2" fill="none" style="stroke:var(--lgFr)" stroke-width="2.4"/><path d="m12 18 4-4 4 4" fill="none" style="stroke:var(--lgAr)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="l-lgE" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#FF5B14"/><rect x="7" y="9" width="18" height="13" rx="2" fill="none" stroke="#16110E" stroke-width="2.4"/><path d="m12 18 4-4 4 4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+ <symbol id="l-gh" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 2.9.8.1-.7.4-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></symbol>
+ <symbol id="l-up" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+ <symbol id="l-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M18 15l.8 2.2 2.2.8-2.2.8L18 21l-.8-2.2-2.2-.8 2.2-.8z"/></symbol>
+</defs></svg>
+<input id="openFile" type="file" accept=".html,.htm" hidden><input id="openDir" type="file" webkitdirectory hidden>
+
+<section class="hero pad" id="l-hero">
+ <header>
+  <div class="brand"><svg class="logo" aria-hidden="true"><use href="#l-lg"/></svg><span data-i18n="land.brand"></span></div>
+  <div class="icons">
+   <button type="button" class="l-ic" id="l-globe" aria-expanded="false" aria-haspopup="true" data-i18n-attr="aria-label:lang.group"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></svg></button>
+   <a class="l-ic" href="https://github.com/ahnbu/open-html-editor" rel="noopener" aria-label="GitHub"><svg class="f" aria-hidden="true"><use href="#l-gh"/></svg></a>
+   <div class="langMenu lang" id="l-langMenu" role="group" data-i18n-attr="aria-label:lang.group"><button type="button" data-lang="ko">한국어</button><button type="button" data-lang="en">English</button></div>
+  </div>
+ </header>
+ <div class="main">
+  <div class="stage" id="l-stage">
+   <h1 id="l-h1"></h1>
+   <div class="ov" aria-hidden="true">
+    <div class="hl" id="l-hl"></div>
+    <div class="l-sel" id="l-sel"><i></i><i></i><i></i><i></i></div>
+    <div class="l-bar" id="l-bar">
+     <span><svg viewBox="0 0 24 24"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg><span data-i18n="land.dmBold"></span></span>
+     <span id="l-tC"><svg viewBox="0 0 24 24"><path d="m6 17 6-13 6 13M8.4 12h7.2"/></svg><i class="l-sw"></i><span data-i18n="land.dmColor"></span></span>
+     <span><svg viewBox="0 0 24 24"><path d="M5 5h14v10H10l-5 4z"/></svg><span data-i18n="land.dmComment"></span></span>
+     <span><svg viewBox="0 0 24 24"><use href="#l-spark"/></svg><span data-i18n="land.dmAiCopy"></span></span>
+    </div>
+    <svg class="l-cur" id="l-cur" viewBox="0 0 24 24"><path d="M4 2l16 10-7 1.5L9.5 21z" fill="#16110E" stroke="#F1ECE6" stroke-width="1.5"/></svg>
+   </div>
+  </div>
+  <div class="foot" id="l-foot">
+   <p class="l-sub" data-i18n="land.sub"></p>
+   <div class="ctaWrap">
+    <div class="cta">
+     <button type="button" class="l-btn pri" id="drop" data-i18n-attr="aria-label:land.drop"><svg aria-hidden="true"><use href="#l-up"/></svg><b data-i18n="land.drop"></b></button>
+     <button type="button" class="l-btn l-sec" id="bExample"><span data-i18n="land.exBtn"></span> <span aria-hidden="true">→</span></button>
+    </div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section class="real pad" id="l-real">
+ <div class="demo" aria-hidden="true">
+  <div class="wwrap" id="l-wwrap"><div class="wcam" id="l-wcam">
+   <div class="l-win" id="l-win">
+    <div class="tb"><svg class="logo"><use href="#l-lgE"/></svg><span class="fn" data-i18n="land.dmFile"></span><span class="ext">.html</span><span data-i18n="land.dmPos"></span><span class="stt" id="l-stT"></span>
+     <span class="rt"><span class="l-pill"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span data-i18n="land.dmShare"></span></span><span class="sv" id="l-bSv"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h8V4"/></svg><span data-i18n="land.dmSave"></span><i></i><svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span><span class="lg"><b data-i18n="land.dmKo"></b>EN</span><span data-i18n="land.dmFold"></span></span></div>
+    <div class="l-rb">
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6"/></svg><span data-i18n="land.dmUndo"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="m15 7 5 5-5 5"/><path d="M20 12H10a6 6 0 0 0-6 6"/></svg><span data-i18n="land.dmRedo"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><span data-i18n="land.dmFind"></span></div></div><div class="gl" data-i18n="land.dmGEdit"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 9h6M12 9v6"/></svg><span data-i18n="land.dmText"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M12 9v6M9 12h6"/></svg><span data-i18n="land.dmImgAdd"></span></div></div><div class="gl" data-i18n="land.dmGInsert"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></svg><span data-i18n="land.dmBold"></span></div><div class="l-ib" id="l-bTc"><svg class="tc" viewBox="0 0 24 24"><path d="m6 17 6-13 6 13M8.4 12h7.2"/></svg><span data-i18n="land.dmColor"></span></div><div class="l-ib inp"><i></i><span data-i18n="land.dmSize"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg><span data-i18n="land.dmAlign"></span></div></div><div class="gl" data-i18n="land.dmGText"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg><span data-i18n="land.dmDup"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M5 4v16M9 7h10v4H9zM9 14h6v4H9z"/></svg><span data-i18n="land.dmArr"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 16 5-5 4 4 3-3 4 4"/></svg><span data-i18n="land.dmImg"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="1"/><path d="M4 10h16M4 14h16M10 5v14M15 5v14"/></svg><span data-i18n="land.dmTbl"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg><span data-i18n="land.dmDel"></span></div></div><div class="gl" data-i18n="land.dmGObj"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="13" height="10" rx="1"/><path d="M4 14V5a1 1 0 0 1 1-1h11"/></svg><span data-i18n="land.dmDup"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span data-i18n="land.dmFwd"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span data-i18n="land.dmBack"></span></div><div class="l-ib del"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m9 9 6 6M15 9l-6 6"/></svg><span data-i18n="land.dmDel"></span></div></div><div class="gl" data-i18n="land.dmGSlide"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib" id="l-bCm"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H10l-5 4z"/></svg><span data-i18n="land.dmComment"></span></div><div class="l-ib" id="l-bAi"><svg viewBox="0 0 24 24"><use href="#l-spark"/></svg><span data-i18n="land.dmAiCopy"></span></div></div><div class="gl" data-i18n="land.dmGReview"></div></div>
+     <div class="l-grp"><div class="bs"><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg><span data-i18n="land.dmGrid"></span></div><div class="l-ib"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="1"/><path d="m10 9 4 2-4 2z"/></svg><span data-i18n="land.dmView"></span></div><div class="l-ib lit"><svg viewBox="0 0 24 24"><path d="M5 17h4l3-5 3-3h4"/><path d="m16 6 3 3-3 3"/></svg><span data-i18n="land.dmSteps"></span></div></div><div class="gl" data-i18n="land.dmGView"></div></div>
+    </div>
+    <div class="rail"><div class="l-h"><span data-i18n="land.dmRail"></span><span data-i18n="land.dmRailFold"></span></div>
+     <div class="th l-on"><span>1</span><div class="tv"></div></div><div class="th"><span>2</span><div class="tv"></div></div><div class="th"><span>3</span><div class="tv"></div></div>
+    </div>
+    <!-- 실제 강의 덱 장(tools/landing-deck.html → window.HE_LANDDECK)을 1920×1080 그대로 줄여 보인다 -->
+    <div class="l-sframe" id="l-sframe"></div>
+    <div class="sb"><span data-i18n="land.dmLoaded"></span><span data-i18n="land.dmWhere"></span><span class="l-r" data-i18n="land.dmKeys"></span></div>
+    <div class="l-pin" id="l-pin">1</div>
+    <!-- 코멘트 입력창: 실제 편집기 코멘트 창(.pop)과 같은 모양. 핀 옆, 장 오른쪽 위 빈자리에 열린다 -->
+    <div class="l-pop" id="l-pop"><div class="l-who" id="l-who"></div><div class="l-ta" id="l-ta"></div><div class="l-prow"><span class="dg" data-i18n="cm.delete"></span><span id="l-ok2" data-i18n="cm.done"></span></div></div>
+    <svg class="wcur" id="l-wcur" viewBox="0 0 24 24"><path d="M4 2l16 10-7 1.5L9.5 21z" fill="#16110E" stroke="#fff" stroke-width="1.5"/></svg>
+   </div>
+  </div></div>
+ </div>
+ <ol class="steps" id="steps">
+  <li><b data-i18n="land.step1k"></b><span data-i18n="land.step1"></span></li>
+  <li><b data-i18n="land.step2k"></b><span data-i18n="land.step2"></span></li>
+  <li><b data-i18n="land.step3k"></b><span data-i18n="land.step3"></span></li>
+  <li><b data-i18n="land.step4k"></b><span data-i18n="land.step4"></span></li>
+ </ol>
+</section>
+
+<section class="claims pad" data-i18n-attr="aria-label:land.features">
+ <h2><span data-i18n="land.f1t"></span><small data-i18n="land.f1d"></small></h2>
+ <h2><span data-i18n="land.f2t"></span><small data-i18n="land.f2d"></small></h2>
+ <h2><span data-i18n="land.f3t"></span><small data-i18n="land.f3d"></small></h2>
+</section>
+
+<footer class="pad">
+ <div class="l-row"><div class="cta"><button type="button" class="l-btn pri" data-open><svg aria-hidden="true"><use href="#l-up"/></svg><span data-i18n="land.drop"></span></button><button type="button" class="l-btn l-sec" data-example><span data-i18n="land.exBtn"></span> <span aria-hidden="true">→</span></button></div></div>
+ <div class="l-base"><div><span class="brand"><svg class="logo" aria-hidden="true"><use href="#l-lg"/></svg><span data-i18n="land.brand"></span></span><p data-i18n="land.footLic"></p><p data-i18n="land.footNote"></p></div><a href="https://github.com/ahnbu/open-html-editor" rel="noopener" aria-label="GitHub"><svg aria-hidden="true"><use href="#l-gh"/></svg></a></div>
+</footer>
+</div>
+
+<div id="title"><span class="brandmini" data-i18n-attr="title:app.name"><svg class="mark sm" role="img" data-i18n-attr="aria-label:app.name"><use href="#logo"/></svg></span><input id="fname" spellcheck="false" data-i18n-attr="aria-label:title.fileName;title:title.fileNameTip"><span class="fext">.html</span><span id="pos"></span><span id="state"><i class="dot"></i><span id="stateText"></span></span>
+ <div id="bar" role="toolbar" data-i18n-attr="aria-label:title.bar">
+  <button type="button" class="ib" id="bUndo"  data-i18n-attr="title:mini.undo;aria-label:mini.undo"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6"/></svg><span class="rl" data-i18n="btn.rbUndo"></span></button><button type="button" class="ib" id="bRedo"  data-i18n-attr="title:mini.redo;aria-label:mini.redo"><svg viewBox="0 0 24 24"><path d="m15 7 5 5-5 5"/><path d="M20 12H10a6 6 0 0 0-6 6"/></svg><span class="rl" data-i18n="btn.rbRedo"></span></button><span class="bsep" aria-hidden="true"></span>
+  <button type="button" class="ib" id="bText"  data-i18n-attr="title:btn.textBox;aria-label:btn.textBox"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M9 9h6M12 9v7"/></svg><span class="rl" data-i18n="btn.rbText"></span></button><label class="ib" id="bImgAdd" data-i18n-attr="title:btn.imgAdd;aria-label:btn.imgAdd" tabindex="0"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M12 9v6M9 12h6"/></svg><span class="rl" data-i18n="btn.rbImgAdd"></span><input id="iImgAdd" type="file" accept="image/*" hidden></label><span class="bsep" aria-hidden="true"></span>
+  <button type="button" class="ib" id="bBold" data-need="el" aria-pressed="false" data-i18n-attr="title:btn.bold;aria-label:btn.bold"><svg viewBox="0 0 24 24"><path d="M7 5h6a4 4 0 0 1 0 8H7zM7 13h7a3.5 3.5 0 0 1 0 7H7z"/></svg><span class="rl" data-i18n="btn.rbBold"></span></button><div class="menuwrap"><button type="button" class="ib" id="bColor" data-need="el" data-menu="colorMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="title:btn.color;aria-label:btn.color"><svg viewBox="0 0 24 24"><path d="m6 17 6-13 6 13M8.5 12h7"/></svg><span class="chip" id="chip"></span><span class="rl" data-i18n="btn.rbColor"></span></button>
+   <div class="menu" id="colorMenu"><div class="mh" data-i18n="menu.deckColors"></div><div class="pal" id="pal"></div><hr><div class="mh" data-i18n="menu.baseColors"></div><div class="pal" id="palBase"></div><hr><label class="colorbtn"><button type="button" class="mi" id="bColorMore"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg><span data-i18n="menu.moreColor"></span></button><input id="iColor" type="color" value="#ff6b47" tabindex="-1" style="position:absolute;width:1px;height:1px;opacity:0;left:12px;bottom:4px;pointer-events:none"></label></div></div>
+  <div class="ib sizebox" id="bSize" data-need="el"><input class="size" id="iSize" type="number" min="6" max="400" data-i18n-attr="aria-label:btn.sizeAria;title:btn.sizeAria"><span class="rl" data-i18n="btn.rbSize"></span></div>
+  <button type="button" class="ib" id="bDel" data-need="el" data-i18n-attr="title:btn.del;aria-label:btn.del"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg><span class="rl" data-i18n="btn.rbDel"></span></button><span class="bsep" aria-hidden="true"></span>
+  <button type="button" class="ib" id="bComment"  data-i18n-attr="title:btn.commentTip;aria-label:btn.commentTip"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg><span class="rl" data-i18n="btn.rbComment"></span><span class="badge" id="cCount" hidden></span></button><button type="button" class="ib" id="bAI"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg><span id="aiLabel" class="vh"></span></button><span class="bsep" aria-hidden="true"></span>
+  <span class="deck-only bgrp"><button type="button" class="ib" id="bGrid"  data-i18n-attr="title:mini.grid;aria-label:mini.grid"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7"/><rect x="13" y="4" width="8" height="7"/><rect x="3" y="13" width="8" height="7"/><rect x="13" y="13" width="8" height="7"/></svg><span class="rl" data-i18n="btn.rbGrid"></span></button><button type="button" class="ib" id="bView"  data-i18n-attr="title:mini.view;aria-label:mini.view"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="1"/><path d="M9 21h6M12 17v4M10 8l5 2.5-5 2.5z"/></svg><span id="viewLabel" class="vh" data-i18n="btn.view"></span></button></span>
+  <div class="menuwrap"><button type="button" class="ib" id="bMore" data-menu="moreMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="title:btn.more;aria-label:btn.more"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg></button>
+   <div class="menu" id="moreMenu">
+    <div class="mh" data-i18n="grp.edit"></div><button type="button" class="mi" id="bFind"  data-i18n-attr="title:menu.find;aria-label:menu.find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg><span data-i18n="menu.find"></span><span class="rl" data-i18n="btn.rbFind"></span></button>
+    <button type="button" class="mi" id="bAlignL" data-need="el" data-align="left"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg><span data-i18n="menu.alignTextL"></span></button><button type="button" class="mi" id="bAlignC" data-need="el" data-align="center"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 11h10M4 16h16M7 21h10"/></svg><span data-i18n="menu.alignTextC"></span></button><button type="button" class="mi" id="bAlignR" data-need="el" data-align="right"><svg viewBox="0 0 24 24"><path d="M4 6h16M10 11h10M4 16h16M10 21h10"/></svg><span data-i18n="menu.alignTextR"></span></button>
+    <hr><div class="mh" data-i18n="grp.object"></div><button type="button" class="mi" id="bDup" data-need="el" data-i18n-attr="title:menu.dup;aria-label:menu.dup"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg><span data-i18n="menu.dup"></span><span class="rl" data-i18n="btn.rbDup"></span></button>
+    <div class="sub"><button type="button" class="mi" id="mArr" data-need="el" data-menu="arrMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="title:btn.arrange;aria-label:btn.arrange"><svg viewBox="0 0 24 24"><path d="M4 3v18M8 7h11v4H8zM8 14h7v4H8z"/></svg><span data-i18n="btn.arrange"></span><span class="rl" data-i18n="btn.rbArr"></span></button><div class="menu inl" id="arrMenu"><div class="mh" data-i18n="menu.order"></div>
+    <button class="mi" id="bFront"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1" fill="#FFE4D6"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></svg><span data-i18n="menu.front"></span></button>
+    <button class="mi" id="bBack"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="11" height="11" rx="1" fill="#FFE4D6"/><path d="M9 15v4a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-4"/></svg><span data-i18n="menu.back"></span></button>
+    <hr><div class="mh" data-i18n="menu.alignHead"></div>
+    <button class="mi" id="bLeft" data-need="many"><svg viewBox="0 0 24 24"><path d="M4 3v18"/><rect x="7" y="6" width="12" height="4" rx="1"/><rect x="7" y="14" width="7" height="4" rx="1"/></svg><span data-i18n="menu.left"></span></button>
+    <button class="mi" id="bCenter" data-need="many"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4" rx="1"/><rect x="8" y="14" width="8" height="4" rx="1"/></svg><span data-i18n="menu.center"></span></button>
+    <button class="mi" id="bRight" data-need="many"><svg viewBox="0 0 24 24"><path d="M20 3v18"/><rect x="5" y="6" width="12" height="4" rx="1"/><rect x="10" y="14" width="7" height="4" rx="1"/></svg><span data-i18n="menu.right"></span></button>
+    <button class="mi" id="bTop" data-need="many"><svg viewBox="0 0 24 24"><path d="M3 4h18"/><rect x="6" y="7" width="4" height="12" rx="1"/><rect x="14" y="7" width="4" height="7" rx="1"/></svg><span data-i18n="menu.top"></span></button>
+    <button class="mi" id="bMiddle" data-need="many"><svg viewBox="0 0 24 24"><path d="M3 12h18"/><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/></svg><span data-i18n="menu.middle"></span></button>
+    <button class="mi" id="bBottom" data-need="many"><svg viewBox="0 0 24 24"><path d="M3 20h18"/><rect x="6" y="5" width="4" height="12" rx="1"/><rect x="14" y="10" width="4" height="7" rx="1"/></svg><span data-i18n="menu.bottom"></span></button></div></div>
+    <label class="mi" id="bImg" data-need="img" data-i18n-attr="title:menu.imgChange;aria-label:menu.imgChange"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="8.5" cy="10" r="1.6"/><path d="m4 18 6-5 4 3 3-2 3 3"/></svg><span data-i18n="menu.imgChange"></span><span class="rl" data-i18n="btn.rbImg"></span><input id="iImg" type="file" accept="image/*" hidden></label>
+    <div class="sub"><button type="button" class="mi" id="mTbl" data-need="cell" data-menu="tblMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="title:btn.table;aria-label:btn.table"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><path d="M3 12h18M12 4v16"/></svg><span data-i18n="btn.table"></span><span class="rl" data-i18n="btn.rbTbl"></span></button><div class="menu inl" id="tblMenu"><button id="bRowAdd" data-i18n="menu.rowAdd"></button><button id="bColAdd" data-i18n="menu.colAdd"></button><button id="bRowDel" class="dg" data-i18n="menu.rowDel"></button><button id="bColDel" class="dg" data-i18n="menu.colDel"></button></div></div>
+    <div class="deck-only"><hr><div class="mh" data-i18n="grp.slide"></div><button type="button" class="mi" id="bSDup"  data-i18n-attr="title:menu.slideDup;aria-label:menu.slideDup"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="13" height="10"/><path d="M8 18h12V8"/></svg><span data-i18n="menu.slideDup"></span><span class="rl" data-i18n="btn.rbSDup"></span></button><button type="button" class="mi" id="bSPrev"  data-i18n-attr="title:menu.slidePrev;aria-label:menu.slidePrev"><svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span data-i18n="menu.slidePrev"></span><span class="rl" data-i18n="btn.rbSPrev"></span></button><button type="button" class="mi" id="bSNext"  data-i18n-attr="title:menu.slideNext;aria-label:menu.slideNext"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span data-i18n="menu.slideNext"></span><span class="rl" data-i18n="btn.rbSNext"></span></button><button type="button" class="mi on" id="bSteps" aria-pressed="true" data-i18n-attr="title:menu.steps;aria-label:menu.steps"><svg viewBox="0 0 24 24"><path d="M4 18h5v-5h5V8h6"/></svg><span data-i18n="menu.steps"></span><span class="rl" data-i18n="btn.rbSteps"></span></button><button type="button" class="mi dg" id="bSDel"  data-i18n-attr="title:menu.slideDel;aria-label:menu.slideDel"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12"/><path d="m9 9 6 5M15 9l-6 5M9 21h6"/></svg><span data-i18n="menu.slideDel"></span><span class="rl" data-i18n="btn.rbSDel"></span></button></div>
+   </div></div>
+ </div>
+ <div class="menuwrap"><button type="button" class="pill share" id="bShare" data-menu="shareMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="aria-label:btn.share;title:menu.shareHead"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg><span data-i18n="btn.share"></span></button>
+  <div class="menu right" id="shareMenu"><div class="mh" data-i18n="menu.shareHead"></div><label class="chk" id="hoRow"><input type="checkbox" id="chkHandoff" checked><span data-i18n="menu.handoff"></span></label><p class="help" id="shareHelp" data-i18n="menu.shareHelp"></p><button type="button" class="go" id="bShareSave" data-i18n="menu.shareSave"></button><button type="button" class="sec" id="bGuide" data-i18n="menu.shareGuide"></button></div></div>
+ <div class="savewrap"><button type="button" class="pill save" id="bSave" title="Ctrl+S"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg><span data-i18n="btn.save"></span></button><button type="button" class="pill savedd" id="bSaveMenu" data-menu="saveMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="aria-label:btn.saveMenu;title:btn.saveMenu"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div class="menu right" id="saveMenu" style="min-width:250px"><button id="bSave2"><span data-i18n="btn.save"></span><kbd>Ctrl+S</kbd></button><button id="bSaveAs"><span data-i18n="menu.saveAs"></span><kbd>Ctrl+Shift+S</kbd></button><button id="bPdf"><span data-i18n="menu.pdf"></span><kbd>Ctrl+P</kbd></button><hr><button id="bOpenOther"><span data-i18n="menu.openOther"></span><kbd>Ctrl+O</kbd></button><input id="openOther" type="file" accept=".html,.htm" hidden></div></div>
+ <div class="lang" role="group" data-i18n-attr="aria-label:lang.group"><button type="button" data-lang="ko" data-i18n="lang.koShort" data-i18n-attr="aria-label:lang.koName"></button><button type="button" data-lang="en" aria-label="English">EN</button></div>
+ <button type="button" id="bFold" aria-controls="ribbon" aria-expanded="true"><span class="fl"></span><svg class="up" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><svg class="dn" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+</div>
+<div id="ribbon" role="toolbar" data-i18n-attr="aria-label:title.ribbon">
+ <div class="rg"><div class="ri" data-slot="edit"></div><div class="rn" data-i18n="grp.edit"></div></div>
+ <div class="rg"><div class="ri" data-slot="insert"></div><div class="rn" data-i18n="grp.insert"></div></div>
+ <div class="rg"><div class="ri" data-slot="text"><div class="menuwrap" id="alignWrap"><button type="button" class="ib" id="bAlignMenu" data-need="el" data-menu="alignMenu" aria-haspopup="true" aria-expanded="false" data-i18n-attr="title:btn.rbAlignTip;aria-label:btn.rbAlignTip"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h10M4 16h16M4 21h10"/></svg><span class="rl" data-i18n="btn.rbAlign"></span></button><div class="menu" id="alignMenu"></div></div></div><div class="rn" data-i18n="grp.text"></div></div>
+ <div class="rg"><div class="ri" data-slot="object"></div><div class="rn" data-i18n="grp.object"></div></div>
+ <div class="rg deck-only"><div class="ri" data-slot="slide"></div><div class="rn" data-i18n="grp.slide"></div></div>
+ <div class="rg"><div class="ri" data-slot="review"></div><div class="rn" data-i18n="grp.review"></div></div>
+ <div class="rg deck-only"><div class="ri" data-slot="view"></div><div class="rn" data-i18n="grp.view"></div></div>
+</div>
+
+<div id="work">
+ <div id="side"><div id="sideHead"><b id="sideCount"></b><button id="bSideFold" data-i18n="side.fold" data-i18n-attr="title:side.foldTip"></button></div><iframe id="thumbs" data-i18n-attr="title:side.list"></iframe></div>
+ <div id="rail"><button id="bSideOpen" data-i18n-attr="title:side.openTip">»</button><span id="railPos"></span></div>
+ <div id="canvas"><iframe id="stage" data-i18n-attr="title:stage.title"></iframe><div id="notesBar" class="deck-only"><div class="nh"><b data-i18n="notes.title"></b><button id="bNotesFold"></button></div><textarea id="notesIn" spellcheck="false" data-i18n-attr="aria-label:notes.title;placeholder:notes.placeholder"></textarea></div><div id="overlay"></div></div>
+</div>
+<div id="pv" hidden tabindex="-1" data-i18n-attr="aria-label:pv.title">
+ <header><div id="pvTimer">00:00</div><button id="pvPause"></button><button id="pvReset" data-i18n="pv.reset"></button><span id="pvClock"></span><span id="pvPage"></span><button id="pvPrev" data-i18n="pv.prev"></button><button id="pvNext" class="go" data-i18n="pv.next"></button><button id="pvEnd" data-i18n="pv.end"></button></header>
+ <div class="pane"><h3 data-i18n="pv.current"></h3><div class="frame"><iframe id="pvCur" data-i18n-attr="title:pv.current"></iframe></div></div>
+ <div id="pvSide"><div class="pane"><h3 data-i18n="pv.next2"></h3><div class="frame" id="pvNxtBox"><iframe id="pvNxt" data-i18n-attr="title:pv.next2"></iframe></div></div><div id="pvNotes" data-i18n-attr="data-empty:pv.noNotes"></div></div>
+ <iframe id="pvRail" data-i18n-attr="title:side.list"></iframe>
+</div>
+<div id="status"><span id="msg" role="status" data-i18n="status.openPrompt"></span><span id="where"></span><span class="r" data-i18n="status.keys"></span></div>
+
+<div id="grid"><div id="gridBar"><b data-i18n="grid.title"></b><span data-i18n="grid.hint"></span><span class="gr"><button class="gbtn" id="gUndo" title="Ctrl+Z"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6"/></svg><span data-i18n="grid.undo"></span></button><button class="gbtn" id="gRedo" title="Ctrl+Y"><svg viewBox="0 0 24 24"><path d="m15 7 5 5-5 5"/><path d="M20 12H10a6 6 0 0 0-6 6"/></svg><span data-i18n="grid.redo"></span></button><button id="gridClose" data-i18n="grid.close"></button></span></div><iframe id="gridFrame" data-i18n-attr="title:grid.title"></iframe></div>
+<dialog id="dlg"><form method="dialog"><label><span data-i18n="find.what"></span><input id="fa"></label><label><span data-i18n="find.with"></span><input id="fb"></label><div class="row"><button value="no" data-i18n="dlg.cancel"></button><button class="go" value="go" data-i18n="find.all"></button></div></form></dialog>
+<dialog id="dlgName"><form method="dialog"><label><span data-i18n="title.fileName"></span><input id="nameIn" spellcheck="false"></label><div class="row"><button value="no" data-i18n="dlg.cancel"></button><button class="go" value="go" data-i18n="btn.save"></button></div></form></dialog>
+<dialog id="dlgCopy"><form method="dialog"><p style="margin:0 0 10px;font-weight:700" data-i18n="copy.doneTitle"></p><p style="margin:0 0 14px;color:var(--mid);font-size:13px" data-i18n="copy.doneBody"></p><div class="row"><button class="go" value="ok" data-i18n="dlg.ok"></button></div></form></dialog>
+<dialog id="dlgBack"><form method="dialog"><p style="margin:0 0 14px" data-i18n="back.body"></p><div class="row"><button value="no" data-i18n="back.stay"></button><button class="go" value="go" data-i18n="back.go"></button></div></form></dialog>
+<dialog id="dlgSwitch"><form method="dialog"><p style="margin:0 0 14px" data-i18n="switch.body"></p><div class="row"><button value="no" autofocus data-i18n="dlg.cancel"></button><button value="discard" class="dgtext" data-i18n="switch.discard"></button><button class="go" value="save" data-i18n="switch.saveOpen"></button></div></form></dialog>
+<dialog id="dlgConflict"><form method="dialog"><p style="margin:0 0 14px" data-i18n="conflict.body"></p><div class="row"><button value="no" data-i18n="dlg.cancel"></button><button value="as" data-i18n="conflict.saveAs"></button><button class="go" value="go" data-i18n="conflict.overwrite"></button></div></form></dialog>
+<dialog id="dlgDel"><form method="dialog"><p style="margin:0 0 6px;font-weight:700" data-i18n="dlg.delTitle"></p><p style="margin:0 0 14px;color:var(--mid);font-size:13px" id="delBody"></p><div class="row"><button value="no" autofocus data-i18n="dlg.cancel"></button><button class="dgbtn" value="go" data-i18n="dlg.delGo"></button></div></form></dialog>
+<!--build:js-->
+</body></html>

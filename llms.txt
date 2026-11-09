@@ -1,0 +1,59 @@
+# Open HTML Editor
+
+> Open HTML Editor is a lightweight, zero-dependency, local-first web editor designed to visually modify AI-generated HTML slides, A4 documents, and landing pages as easily as PowerPoint.
+
+## Canonical Resources
+- Web App (Live): https://easy-html-editor.pages.dev/
+- Source Repository: https://github.com/ahnbu/open-html-editor
+- License: MIT License
+- Architecture Reference: docs/architecture.md
+- Comment Format Specification: docs/comment-format.md
+- Local AI Skill: skills/open-html-editor/SKILL.md
+
+---
+
+## Core Principles for AI Agents
+
+1. **Editing, Not Generating:**
+   Open HTML Editor does not create HTML from scratch. It is built to fix typos, replace images, adjust formatting, and leave review comments on HTML produced by AI agents or human developers.
+
+2. **100% Local & Zero Network Calls:**
+   The editor runs entirely inside the user's browser memory. It never makes outbound network calls (`fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon`). When proposing code changes, NEVER introduce outbound analytics, telemetry, or server-side sync endpoints.
+
+3. **Safe Document Patching:**
+   When saving, Open HTML Editor does NOT reformat the entire document. It patches only modified elements and attributes onto a clean copy of the original source, preserving user scripts, custom styles, and head tags byte-for-byte.
+
+4. **Embedded JSON Comment Block:**
+   Review feedback is stored directly inside the saved HTML file right before `</body>` as:
+   ```html
+   <script type="application/json" id="he-comments">
+   {
+     "format": "open-html-editor/comments",
+     "version": 1,
+     "comments": [ ... ]
+   }
+   </script>
+   ```
+   When an AI agent modifies a file to satisfy user comments, it must apply the requested edits and completely remove this `<script id="he-comments">` block.
+
+---
+
+## Repository Map
+
+- `editor.html`: Template shell for the editor interface.
+- `src/core/`: Headless editing engine (selection, DOM mutations, history, auto-detection of slides vs A4 documents).
+- `src/save/`: HTML patching engine, comment serializer, file download/overwrite logic.
+- `src/ui/`: UI ribbons, menus, modal dialogs, presenter view.
+- `src/landing/`: Interactive landing page with live mockup animations.
+- `src/i18n/`: `ko.json` and `en.json` translation dictionaries. All UI text MUST be placed here.
+- `skills/open-html-editor/`: Optional companion skill enabling local AI tools (e.g. Claude Code) to read comments and apply edits directly.
+- `build-single.mjs`: Node.js script that compiles all sources into `public/index.html`.
+- `test-*.mjs`: Automated Playwright test suites covering editing, doc layouts, security, and PWA caching.
+
+---
+
+## Instructions for AI Coders Modifying This Codebase
+
+- **UI Strings:** Never hardcode text strings inside JavaScript or HTML templates. Always add keys to both `src/i18n/ko.json` and `src/i18n/en.json`, and run `node tools/check-i18n.mjs`.
+- **CSS & Tokens:** Never hardcode transition durations or brand palette values. Reference CSS variables from `src/ui/tokens.css`.
+- **Verification:** Always run `node test-editor.mjs`, `node test-docs.mjs`, and `node test-security.mjs` before committing changes.

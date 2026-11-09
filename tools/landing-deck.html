@@ -1,0 +1,147 @@
+<!-- 첫 화면 시연 장표(src/landing/landing.js가 window.HE_LANDDECK으로 읽는다. build-single.mjs가 넣는다).
+     슬라이드 덱의 세 장(시연 장을 맨 앞에, 사진 없는 장만). 문구·디자인은 원본 그대로이고,
+     첫 장 제목에만 시연 표시(data-demo)를 달았다. 영어 화면에서는 같은 자리 구성의 영어판(tools/landing-deck.en.html)을 띄운다. -->
+<section data-demo="main" data-label="D1-22 모델과 effort" data-screen-label="D1-22" data-speaker-notes="모델이랑 effort 설정에 따라 비용이 달라집니다. 우리는 Sonnet 5 · 높음으로 실습하는데, 이게 클로드 앱 기본값입니다." style="width: 1920px; height: 1080px; background: #FFFFFF; font-family: Pretendard, sans-serif; color: #0A2548;" data-om-slide-id="6eb40e4c">
+    <div style="position: relative; width: 100%; height: 100%;">
+      <div style="position: absolute; left: 77px; top: 58px; width: 1766px; height: 119px; font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 64px; line-height: 1.10; display: flex; align-items: center;"><span data-demo="title">모델과 <span data-demo="fix" data-typo="에포트">effort</span> — <span data-demo="color">비용이</span> 달라집니다</span></div>
+      <div style="position: absolute; left: 77px; top: 177px; width: 1766px; height: 3px; background: #1C60EF;"></div>
+
+      <div style="position: absolute; left: 77px; top: 250px; width: 1766px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px;">
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          <div style="font-size: 32px; font-weight: 700; color: #1C60EF;">모델별 비용</div>
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div style="display: grid; grid-template-columns: 280px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">Haiku 4.5</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 83px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x0.33</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 280px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 700;">Sonnet 5 (~8월말)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 168px; height: 56px; background: #FF6B47; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 700; color: #FF6B47;">x0.67 ← 권장</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 280px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">Sonnet 5 (8월 이후)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 251px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x1.00</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 280px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">Opus 5</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 420px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x1.67</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          <div style="font-size: 32px; font-weight: 700; color: #1C60EF;">effort별 비용</div>
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <div style="display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">낮음 (Low)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 242px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x0.72</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">중간 (Medium)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 289px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x0.86</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 700;">높음 (High)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 336px; height: 56px; background: #FF6B47; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 700; color: #FF6B47;">x1.00 ← 권장</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">매우높음 (Xhigh)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 373px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x1.11</div></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px;">
+              <div style="font-size: 28px; font-weight: 500; color: #5A5570;">최대 (Max)</div>
+              <div style="display: flex; align-items: center; gap: 20px;"><div style="width: 420px; height: 56px; background: #DEDEDF; border-radius: 4px;"></div><div style="font-size: 28px; font-weight: 500; color: #8B8A95;">x1.25</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position: absolute; left: 77px; top: 870px; width: 1766px; height: 100px; background: #0A2548; border-radius: 12px; color: #FFFFFF; font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 40px; display: flex; align-items: center; justify-content: center;"><br><span style="color: rgb(255, 107, 71);">Sonnet 5 · 높음</span>으로 실습합니다 — 클로드 앱 기본값입니다</div>
+      <div style="position: absolute; left: 1443px; top: 1008px; width: 400px; height: 58px; font-size: 24px; font-weight: 500; color: #8B8A95; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 12px;"><span>PlanningHigh ·</span><span data-pageno="1">26</span></div>
+    </div>
+  </section>
+<section data-label="D1-21 내 폴더에서 시작 (Code 탭)" data-screen-label="D1-21" data-speaker-notes="이제 클로드 웹에서 클로드 앱 Code 탭으로 옮깁니다. 내 폴더를 선택하고 작업을 시작합니다." style="width: 1920px; height: 1080px; background: #FFFFFF; font-family: Pretendard, sans-serif; color: #0A2548;" data-om-slide-id="f23f8a4a">
+    <div style="position: relative; width: 100%; height: 100%;">
+      <div style="position: absolute; left: 77px; top: 58px; width: 1766px; height: 119px; font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 64px; line-height: 1.10; display: flex; align-items: center;">내 컴퓨터 폴더에서 시작하기 (Code 탭)</div>
+      <div style="position: absolute; left: 77px; top: 177px; width: 1766px; height: 3px; background: #1C60EF;"></div>
+      <div style="position: absolute; left: 77px; top: 200px; font-size: 32px; font-weight: 500; color: #5A5570; white-space: nowrap;">지금까지 만든 걸, 이제 내 폴더로 옮깁니다</div>
+
+      <div style="position: absolute; left: 77px; top: 280px; width: 1766px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 38px; height: 88px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #DBE8FE; color: #1C60EF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">1</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 500; line-height: 1.15;">폴더 만들기 : 바탕화면 우클릭 → 새로 만들기 → 폴더 → 이름 「소개페이지」</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 38px; height: 88px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #DBE8FE; color: #1C60EF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">2</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 500; line-height: 1.15;">내려받은 HTML 파일을 이 폴더로 끌어다 놓기</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 35px; height: 96px; border: 3px solid #1C60EF; border-radius: 12px; margin-left: -24px; padding-left: 21px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #1C60EF; color: #FFFFFF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">3</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 700; line-height: 1.15;">그 파일 이름을 index.html 로 바꾸기</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 38px; height: 88px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #DBE8FE; color: #1C60EF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">4</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 500; line-height: 1.15;">클로드 앱 열기 → Code 탭 → 폴더 선택</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 38px; height: 88px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #DBE8FE; color: #1C60EF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">5</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 500; line-height: 1.15;">오른쪽 아래 모델이 「Sonnet 5 · 높음」 인지 확인</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 38px; height: 88px; padding-right: 38px;">
+          <div style="flex: 0 0 64px; height: 64px; border-radius: 50%; background: #DBE8FE; color: #1C60EF; font-family: Paperlogy, sans-serif; font-weight: 900; font-size: 37px; display: flex; align-items: center; justify-content: center;">6</div>
+          <div style="flex: 1; min-width: 0; font-size: 37px; font-weight: 500; line-height: 1.15;">클로드에게: 「이 폴더에 뭐가 있어?」</div>
+        </div>
+      </div>
+
+      <div style="position: absolute; left: 77px; top: 904px; width: 1766px; height: 96px; background: #FFF8F4; border-left: 8px solid #FF6B47; border-radius: 12px; display: flex; align-items: center; padding-left: 94px; font-size: 32px; font-weight: 700; color: #FF6B47">3번을 빼면 마지막 배포에서 주소가 안 열리고 검은 404만 뜹니다</div>
+      <div style="position: absolute; left: 1443px; top: 1008px; width: 400px; height: 58px; font-size: 24px; font-weight: 500; color: #8B8A95; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 12px;"><span>PlanningHigh ·</span><span data-pageno="1">25</span></div>
+    </div>
+  </section>
+<section data-label="D1-24 규칙은 2가지" data-screen-label="D1-24" data-speaker-notes="클로드가 매번 읽는 규칙 파일은 프로젝트 규칙과 글로벌 규칙 두 가지입니다." style="width: 1920px; height: 1080px; background: #FFFFFF; font-family: Pretendard, sans-serif; color: #0A2548;" data-om-slide-id="149ba2c1">
+    <div style="position: relative; width: 100%; height: 100%;">
+      <div style="position: absolute; left: 77px; top: 58px; width: 1766px; height: 119px; font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 64px; line-height: 1.10; display: flex; align-items: center;">규칙은 2가지</div>
+      <div style="position: absolute; left: 77px; top: 177px; width: 1766px; height: 3px; background: #1C60EF;"></div>
+
+      <div style="position: absolute; left: 77px; top: 240px; width: 1000px; height: 580px; border: 3px solid #8B8A95; border-radius: 12px; padding: 32px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 20px; height: 20px; border-radius: 4px; background: #8B8A95;"></div>
+          <div style="font-size: 32px; font-weight: 700; color: #5A5570;">내 컴퓨터 전체</div>
+        </div>
+        <div style="height: 116px; border: 3px solid #0A2548; border-radius: 12px; display: flex; align-items: center; padding: 0 32px; gap: 24px; background: #F4F3F6;">
+          <div style="font-size: 30px; font-weight: 700; color: #0A2548;">글로벌 규칙</div>
+          <div style="font-size: 28px; font-weight: 500; color: #5A5570;">모든 폴더에서 적용</div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; border: 3px dashed #DEDEDF; border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="width: 20px; height: 20px; border-radius: 4px; background: #1C60EF;"></div>
+            <div style="font-size: 32px; font-weight: 700; color: #1C60EF;">소개페이지 폴더</div>
+          </div>
+          <div style="height: 116px; border: 3px solid #1C60EF; border-radius: 12px; display: flex; align-items: center; padding: 0 32px; gap: 24px; background: #DBE8FE;">
+            <div style="font-size: 30px; font-weight: 700; color: #1C60EF;">프로젝트 규칙</div>
+            <div style="font-size: 28px; font-weight: 500; color: #1C60EF;">이 폴더에서만 적용</div>
+          </div>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex: 1; height: 56px; border-radius: 8px; background: #F2F2F4;"></div>
+            <div style="flex: 1; height: 56px; border-radius: 8px; background: #F2F2F4;"></div>
+            <div style="flex: 1; height: 56px; border-radius: 8px; background: #F2F2F4;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="position: absolute; left: 1140px; top: 240px; width: 703px; display: flex; flex-direction: column; gap: 32px;">
+        <div style="display: flex; flex-direction: column; gap: 14px; padding-bottom: 28px; border-bottom: 2px solid #DEDEDF;">
+          <div style="font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 43px; line-height: 1.15;">글로벌 규칙</div>
+          <div style="font-size: 30px; font-weight: 500; color: #5A5570; line-height: 1.3;">내 컴퓨터에 있음<br>모든 폴더에서 적용됩니다</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; padding-bottom: 28px; border-bottom: 2px solid #DEDEDF;">
+          <div style="font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 43px; line-height: 1.15;">프로젝트 규칙</div>
+          <div style="font-size: 30px; font-weight: 500; color: #5A5570; line-height: 1.3;">이 폴더 안에 있음<br>이 폴더에서만 적용됩니다</div>
+        </div>
+        <div style="font-size: 30px; font-weight: 500; color: #8B8A95; line-height: 1.3;">폴더를 옮겨 다녀도 글로벌 규칙은 따라옵니다<br>(충돌시 프로젝트 규칙 &gt; 글로벌 규칙)</div>
+      </div>
+
+      <div style="position: absolute; left: 77px; top: 870px; width: 1766px; height: 110px; background: #0A2548; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: Paperlogy, sans-serif; font-weight: 800; font-size: 43px; color: #FFFFFF;">클로드가 둘 다 매번 읽습니다</div>
+      <div style="position: absolute; left: 1443px; top: 1008px; width: 400px; height: 58px; font-size: 24px; font-weight: 500; color: #8B8A95; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 12px;"><span>PlanningHigh ·</span><span data-pageno="1">28</span></div>
+    </div>
+  </section>

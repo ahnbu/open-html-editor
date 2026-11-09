@@ -1,0 +1,14 @@
+/* Design tokens (plan 1d). Colors, spacing, type sizes, motion. Every transition/animation time comes from here.
+   Editor = quick 0.1-0.2s feedback only. Bigger motion is for the landing page only. */
+:root{
+ --white:#fff;--ink:#16110E;--blue:#FF5B14;--blue-hover:#E64E0C;--dark:#16110E;--tint:#FFE4D6;--coral:#FF5B14;--mid:#5C554E;--line:#E2DDD6;--bg:#F6F4F1;--danger:#E11D48;
+ --sp-1:8px;--sp-2:16px;--sp-3:24px;--sp-4:40px;--sp-5:64px;--sp-6:120px;
+ --fs-xs:11px;--fs-sm:12px;--fs-md:14px;--fs-lg:18px;--fs-xl:20px;
+ --radius-sm:4px;--radius-md:6px;--radius-lg:10px;
+ --dur-fast:120ms;--dur-base:240ms;--dur-slow:600ms;
+ --ease-out:cubic-bezier(.2,.7,.2,1);--ease-in-out:cubic-bezier(.4,0,.2,1);
+ /* landing page only (src/landing/landing.css): hover/press feedback and the typing caret */
+ --dur-l1:150ms;--dur-l2:200ms;--dur-l3:250ms;--dur-l4:300ms;--dur-blink:800ms;--ease-land:cubic-bezier(.2,.8,.2,1);
+}
+/* Respect the OS "reduce motion" setting: all token durations drop to zero */
+@media (prefers-reduced-motion:reduce){:root{--dur-fast:0ms;--dur-base:0ms;--dur-slow:0ms;--dur-l1:0ms;--dur-l2:0ms;--dur-l3:0ms;--dur-l4:0ms;--dur-blink:0ms}}

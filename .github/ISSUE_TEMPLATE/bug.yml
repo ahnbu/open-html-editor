@@ -1,0 +1,30 @@
+name: Bug report
+description: Something opens or saves wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you saw.
+    validations:
+      required: true
+  - type: textarea
+    id: file
+    attributes:
+      label: The HTML file
+      description: Attach the HTML file that misbehaves (or a smaller copy that shows the problem). Remove anything private first. Without the file we usually cannot reproduce it.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 131 on Windows 11
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: How did it open?
+      options: [Slides (one at a time), A4 pages, Scrolling page, Did not open]
