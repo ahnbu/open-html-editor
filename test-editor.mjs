@@ -344,10 +344,11 @@ if (capDir) { // 상태별 캡처
   {
     const e = await ctx.newPage(); await e.goto(EDITOR); await e.click('#bExample'); await e.waitForFunction(() => window.HE.S.doc && window.HE.slides().length > 0); await e.waitForTimeout(800);
     const r1 = await e.evaluate(() => { const r = document.querySelector('#stage').getBoundingClientRect(); return r.width / r.height; });
-    const free = async (html) => { await e.evaluate((h) => window.HE.openText(h, 'v.html', new Map()), html); await e.waitForTimeout(700); return e.evaluate(() => ({ w: document.querySelector('#stage').style.width, ratio: window.HE.slideRatio() })); };
+    const free = async (html) => { await e.evaluate((h) => window.HE.openText(h, 'v.html', new Map()), html); await e.waitForTimeout(700); return e.evaluate(() => { const s = document.querySelector('#stage').getBoundingClientRect(), w = document.querySelector('#stageWrap').getBoundingClientRect(); return { fill: Math.abs(s.width - w.width) <= 2 && Math.abs(s.height - w.height) <= 2, ratio: window.HE.slideRatio() }; }); };
+    // 20261109_03: 무대를 스크롤 칸(#stageWrap)에 담고 맞춤 크기를 늘 지정하므로, 「창을 따르는 덱」은 칸을 꽉 채우는지로 본다(옛 판정: 크기 미지정)
     const demo = await free(readFileSync(join(HERE, 'tools/demo-deck.html'), 'utf8'));
     const vw = await free('<!doctype html><html><head><style>body{margin:0}.slide{width:90vw;height:50vw;display:none}.slide:first-of-type{display:block}</style></head><body><section class="slide"><h1>A</h1></section><section class="slide"><h1>B</h1></section></body></html>');
-    results['무대: 예시 덱은 16:9, 창을 따르는 덱(100vw·90vw)은 그대로'] = r1 > 1.76 && r1 < 1.79 && demo.w === '' && demo.ratio === 0 && vw.w === '' && vw.ratio === 0;
+    results['무대: 예시 덱은 16:9, 창을 따르는 덱(100vw·90vw)은 그대로'] = r1 > 1.76 && r1 < 1.79 && demo.fill && demo.ratio === 0 && vw.fill && vw.ratio === 0;
     // 예시 덱 PDF: 2장(남색 바탕)이 배경 출력을 끈 채로도 남색으로 칠해진다(print-color-adjust), 쪽 크기 = 1920×1080px
     await e.evaluate(() => window.HE.openText(window.HE_EXAMPLE, 'ex.html', new Map())); await e.waitForTimeout(800);
     const html = await e.evaluate(() => window.HEUI_printDoc()); const pp = await ctx.newPage(); await pp.setContent(html); await pp.waitForTimeout(300);
@@ -420,6 +421,111 @@ async function ribbonTests(shot) {
     console.log(results[`펼친 메뉴: ${w} ${lang} 펼침·접힘 모두 넘침·겹침 없음, 리본 끝까지 닿음`] ? '통과' : '실패', `펼친 메뉴: ${w} ${lang}`, JSON.stringify({ o, f, reach }));
     await c3.close();
   }
+}
+
+// ---------- 20261109_03: 굵게 해제·장표 확대 축소·빈 곳 클릭 선택 해제 (계획 _docs/20261109_03) ----------
+{
+  const EVD = join(HERE, '_docs/20261109_03_근거'); mkdirSync(EVD, { recursive: true });
+  const D3 = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0}.slide{position:relative;width:1000px;height:560px;overflow:hidden}
+p{position:absolute;left:60px;margin:0;font-size:30px;font-weight:400}#p1{top:40px}#p2{top:140px}#p3{top:240px}#p4{top:340px}.heavy{font-weight:700}</style></head><body>
+<section class="slide"><p id="p1">일반 <b id="bw">굵은</b> 글자</p><p id="p2">보통 <strong id="sw">강조</strong> 끝</p><p id="p3">앞 <em style="color:#cc0000">빨강 <span class="heavy" id="hv">클래스굵기</span></em> 뒤</p><p id="p4">평범한 단어 둘</p></section></body></html>`;
+  const d3Path = join(work, 'd3.html'); writeFileSync(d3Path, D3);
+  const open3 = async (c, url = EDITOR) => { const pg = await c.newPage(); pg.on('pageerror', (e) => { results.pageErrors = (results.pageErrors || 0) + 1; console.log('페이지 오류', e.message.slice(0, 160)); }); await pg.goto(url); await pg.setInputFiles('#openFile', d3Path); await pg.waitForFunction(() => window.HE.S.doc && window.HE.slides().length > 0); await pg.waitForTimeout(400); return pg; };
+  // 글자 고치기를 시작하고 범위를 고른다: id 요소의 글자 전체, 또는 [텍스트 노드 순번, 시작, 끝]
+  const pickText = (pg, boxId, target) => pg.evaluate(([boxId, target]) => { const H = window.HE, d = H.S.doc; H.startText(d.getElementById(boxId)); const r = d.createRange(); if (typeof target === 'string') r.selectNodeContents(d.getElementById(target)); else { const w = d.createTreeWalker(d.getElementById(boxId), 4); let t, i = 0; while ((t = w.nextNode())) { if (i === target[0]) break; i++; } r.setStart(t, target[1]); r.setEnd(t, target[2]); } const s = H.S.win.getSelection(); s.removeAllRanges(); s.addRange(r); }, [boxId, target]);
+  const wOf = (pg, text) => pg.evaluate((text) => { const d = window.HE.S.doc, w = d.createTreeWalker(d.body, 4); let t; while ((t = w.nextNode())) if (t.data.includes(text)) return { w: +window.HE.CS(t.parentElement).fontWeight, color: window.HE.CS(t.parentElement).color }; return null; }, text);
+  const savedOf = async (pg) => { const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('#bSave')]); const f = join(work, 'd3out' + Date.now() + '.html'); await dl.saveAs(f); return f; };
+  // 저장물을 새 창에 열어 글자의 계산 굵기·색을 잰다
+  const reopen = async (f, texts) => { const v = await ctx.newPage(); await v.goto(pathToFileURL(f).href); const out = await v.evaluate((texts) => texts.map((x) => { const w = document.createTreeWalker(document.body, 4); let t; while ((t = w.nextNode())) if (t.data.includes(x)) { const cs = getComputedStyle(t.parentElement); return { w: +cs.fontWeight, color: cs.color }; } return null; }), texts); const txt = await v.evaluate(() => [...document.querySelectorAll('p')].map((p) => p.textContent)); await v.close(); return { out, txt }; };
+  const c3 = await b.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true, locale: 'ko-KR' });
+  let g = await open3(c3);
+  await test('T1 글자 범위 굵게 해제(b 단어·클래스 굵기 중첩) — 화면·저장물', async () => {
+    await pickText(g, 'p1', 'bw'); await g.click('#bBold'); await g.waitForTimeout(100); const a = await wOf(g, '굵은');
+    await g.keyboard.press('Escape'); await g.waitForTimeout(100);
+    await pickText(g, 'p3', 'hv'); await g.click('#bBold'); await g.waitForTimeout(100); const c = await wOf(g, '클래스굵기');
+    await g.keyboard.press('Escape'); await g.waitForTimeout(150); await g.screenshot({ path: join(EVD, '구현_굵게해제_1280.png') });
+    const f = await savedOf(g); const s = await reopen(f, ['굵은', '클래스굵기', '일반', '빨강']);
+    console.log('  T1', JSON.stringify({ a, c, s }));
+    return a.w < 600 && c.w < 600 && c.color === 'rgb(204, 0, 0)' && s.out[0].w < 600 && s.out[1].w < 600 && s.out[1].color === 'rgb(204, 0, 0)' && s.out[2].w < 600 && s.out[3].color === 'rgb(204, 0, 0)' && s.txt[0] === '일반 굵은 글자' && s.txt[2] === '앞 빨강 클래스굵기 뒤';
+  });
+  await test('T2 보통 단어만 골라 굵게(회귀)', async () => { await pickText(g, 'p4', [0, 0, 3]); await g.click('#bBold'); await g.waitForTimeout(100); const a = await wOf(g, '평범한'); await g.keyboard.press('Escape'); return a.w >= 600; });
+  await g.close(); g = await open3(c3);
+  await test('T3 굵은 단어 + 보통 단어를 함께 고르면 모두 굵게', async () => { await g.evaluate(() => { const H = window.HE, d = H.S.doc, p = d.getElementById('p1'); H.startText(p); const r = d.createRange(); r.setStart(p.firstChild, 0); r.setEnd(d.getElementById('bw').firstChild, 2); const s = H.S.win.getSelection(); s.removeAllRanges(); s.addRange(r); }); await g.click('#bBold'); await g.waitForTimeout(100); const a = await wOf(g, '일반'), c = await wOf(g, '굵은'); await g.keyboard.press('Escape'); return a.w >= 600 && c.w >= 600; });
+  await test('T4b 굵은 단어를 고르면 굵게 버튼 눌림 표시', async () => { await pickText(g, 'p2', 'sw'); await g.waitForTimeout(150); const on = await g.getAttribute('#bBold', 'aria-pressed'); await pickText(g, 'p2', [0, 0, 2]); await g.waitForTimeout(150); const off = await g.getAttribute('#bBold', 'aria-pressed'); await g.keyboard.press('Escape'); return on === 'true' && off === 'false'; });
+  await test('T4 상자 전체 굵게 끄기 — 안쪽 strong까지, 되돌리기 1번, 저장물', async () => {
+    await g.evaluate(() => { const H = window.HE; H.finishText(); H.setSel([H.S.doc.getElementById('p2')]); }); await g.waitForTimeout(80);
+    await g.click('#bBold'); await g.waitForTimeout(80); const on = [await wOf(g, '보통'), await wOf(g, '강조')];
+    await g.click('#bBold'); await g.waitForTimeout(80); const off = [await wOf(g, '보통'), await wOf(g, '강조')];
+    await g.click('#bUndo'); await g.waitForTimeout(80); const un = [await wOf(g, '보통'), await wOf(g, '강조')];
+    await g.click('#bRedo'); await g.waitForTimeout(80);
+    const f = await savedOf(g); const s = await reopen(f, ['보통', '강조']);
+    console.log('  T4', JSON.stringify({ on, off, un, s: s.out }));
+    return on.every((x) => x.w >= 600) && off.every((x) => x.w < 600) && un.every((x) => x.w >= 600) && s.out.every((x) => x.w < 600);
+  });
+  await g.close(); g = await open3(c3);
+  const selN = (pg) => pg.evaluate(() => window.HE.S.sel.length);
+  const grayPoint = (pg) => pg.evaluate(() => { const w = document.querySelector('#stageWrap').getBoundingClientRect(), s = document.querySelector('#stage').getBoundingClientRect(); const c = document.querySelector('#canvas').getBoundingClientRect(); return s.right + 20 < w.right ? { x: (s.right + w.right) / 2, y: s.top + 50 } : { x: c.left + 5, y: c.top + 5 }; });
+  await test('T5 회색 영역 클릭 → 선택 해제, 노트 칸·손잡이는 유지, 글자 고치기 끝', async () => {
+    const pickP1 = () => g.evaluate(() => window.HE.setSel([window.HE.S.doc.getElementById('p1')]));
+    await pickP1(); await g.waitForTimeout(80); await g.click('#notesIn'); await g.waitForTimeout(80); const keepNotes = await selN(g);
+    await pickP1(); await g.waitForTimeout(150); const hd = await g.evaluate(() => { const h = document.querySelector('#overlay .hd[data-h="se"]').getBoundingClientRect(); return { x: h.left + h.width / 2, y: h.top + h.height / 2 }; }); await g.mouse.click(hd.x, hd.y); await g.waitForTimeout(80); const keepHd = await selN(g);
+    const gp = await grayPoint(g); await g.mouse.click(gp.x, gp.y); await g.waitForTimeout(120); const cleared = await selN(g);
+    await g.screenshot({ path: join(EVD, '구현_빈곳해제_1280.png') });
+    await pickText(g, 'p4', [0, 0, 2]); await g.mouse.click(gp.x, gp.y); await g.waitForTimeout(120); const ed = await g.evaluate(() => !!window.HE.S.editing);
+    console.log('  T5', JSON.stringify({ keepNotes, keepHd, cleared, ed }));
+    return keepNotes === 1 && keepHd === 1 && cleared === 0 && !ed;
+  });
+  await test('T6 Ctrl+휠: 회색 영역·무대 안 모두 기본 동작 막고 배율 변경, Ctrl 없는 휠은 그대로', async () => {
+    const r = await g.evaluate(() => { const S = window.HE.S, z0 = S.zoom || 1; const ev = (o) => new WheelEvent('wheel', Object.assign({ deltaY: -100, bubbles: true, cancelable: true, clientX: 300, clientY: 200 }, o));
+      const outer = !document.querySelector('#stageWrap').dispatchEvent(ev({ ctrlKey: true })); const z1 = S.zoom; const inner = !S.doc.getElementById('p1').dispatchEvent(ev({ ctrlKey: true })); const z2 = S.zoom; const plain = !S.doc.getElementById('p1').dispatchEvent(ev({})); return { z0, outer, z1, inner, z2, plain }; });
+    await g.click('#zoomFit'); console.log('  T6', JSON.stringify(r));
+    return r.outer && r.inner && !r.plain && r.z1 > r.z0 && r.z2 > r.z1;
+  });
+  const stageW = (pg) => pg.evaluate(() => document.querySelector('#stage').getBoundingClientRect().width);
+  await test('T7 조절기 + 두 번 → 120%, 맞춤 → 100%', async () => { const w0 = await stageW(g); await g.click('#zoomIn'); await g.click('#zoomIn'); await g.waitForTimeout(100); const t1 = await g.textContent('#zoomPct'), w1 = await stageW(g); await g.click('#zoomFit'); await g.waitForTimeout(100); const t2 = await g.textContent('#zoomPct'), w2 = await stageW(g); console.log('  T7', JSON.stringify({ w0, t1, w1, t2, w2 })); return t1 === '120%' && Math.abs(w1 - w0 * 1.2) <= 2 && t2 === '100%' && Math.abs(w2 - w0) <= 2; });
+  // 무대 안 요소의 화면 좌표 — 편집기 변환 코드와 따로, CSS px(offset 값) × 배율로 계산한다(장은 무대 왼쪽 위 0,0, 글상자는 장 기준 절대 위치)
+  const outerOf = (pg, id) => pg.evaluate((id) => { const st = document.querySelector('#stage').getBoundingClientRect(), z = window.HE.S.zoom || 1, e = window.HE.S.doc.getElementById(id), l = e.offsetLeft, t = e.offsetTop, w = e.offsetWidth, h = e.offsetHeight; return { x: st.left + l * z, y: st.top + t * z, w: w * z, h: h * z, cx: st.left + (l + w / 2) * z, cy: st.top + (t + h / 2) * z }; }, id);
+  const boxRect = (pg) => pg.evaluate(() => { const b = document.querySelector('#overlay .box'); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width }; });
+  await test('T8 150%: 클릭·선택 상자·손잡이 30px→20px·코멘트 핀·스크롤·잘림·코멘트 창', async () => {
+    for (let i = 0; i < 5; i++) await g.click('#zoomIn'); await g.waitForTimeout(150); const pct = await g.textContent('#zoomPct');
+    // 가운데 기준으로 커지므로 왼쪽 위 글상자가 보이게 스크롤을 처음으로 돌린다
+    await g.evaluate(() => { const w = document.querySelector('#stageWrap'); w.scrollLeft = 0; w.scrollTop = 0; }); await g.waitForTimeout(150);
+    const o2 = await outerOf(g, 'p2'); await g.mouse.click(o2.cx, o2.cy); await g.waitForTimeout(120); const picked = await g.evaluate(() => (window.HE.S.sel[0] || {}).id);
+    const bx = await boxRect(g), boxOk = bx && Math.abs(bx.x - o2.x) <= 2 && Math.abs(bx.y - o2.y) <= 2;
+    const before = await g.evaluate(() => { const e = window.HE.S.doc.getElementById('p2'); return { w: e.offsetWidth, l: parseFloat(window.HE.CS(e).left) }; });
+    const eh = await g.evaluate(() => { const h = document.querySelector('#overlay .hd[data-h="e"]').getBoundingClientRect(); return { x: h.left + h.width / 2, y: h.top + h.height / 2 }; });
+    await g.mouse.move(eh.x, eh.y); await g.mouse.down(); await g.mouse.move(eh.x + 15, eh.y, { steps: 4 }); await g.mouse.move(eh.x + 30, eh.y, { steps: 4 }); await g.mouse.up(); await g.waitForTimeout(100);
+    const after = await g.evaluate(() => { const e = window.HE.S.doc.getElementById('p2'); return { w: e.offsetWidth, l: parseFloat(window.HE.CS(e).left) }; });
+    const resizeOk = Math.abs(after.w - before.w - 20) <= 2 && Math.abs(after.l - before.l) <= 1;
+    // 코멘트 핀: 코멘트 모드에서 p4 오른쪽 빈 곳을 눌러 단다
+    const o4 = await outerOf(g, 'p4'); await g.click('#bComment'); await g.waitForTimeout(80); const px = o4.x + o4.w + 40, py = o4.cy; await g.mouse.click(px, py); await g.waitForTimeout(200);
+    const pin = await g.evaluate(() => { const p = [...document.querySelectorAll('#overlay .pin')].pop(); if (!p) return null; const r = p.getBoundingClientRect(); return { x: r.left, y: r.top }; });
+    const pinOk = pin && Math.abs(pin.x - px) <= 30 && Math.abs(pin.y - py) <= 30;
+    await g.fill('#popText', '확대 시험 코멘트'); await g.click('#popOk'); await g.click('#bComment'); await g.waitForTimeout(80);
+    // 스크롤 200px 뒤에도 선택 상자가 요소에 붙어 있음
+    await g.evaluate(() => window.HE.setSel([window.HE.S.doc.getElementById('p2')])); await g.evaluate(() => { document.querySelector('#stageWrap').scrollTop = 200; }); await g.waitForTimeout(200);
+    const o2s = await outerOf(g, 'p2'), bxs = await boxRect(g), scrollOk = bxs && Math.abs(bxs.x - o2s.x) <= 2 && Math.abs(bxs.y - o2s.y) <= 2;
+    await g.screenshot({ path: join(EVD, '구현_확대150_1280.png') });
+    // 맨 위 p1을 고르고 끝까지 내리면 p1 상자는 무대 칸 보이는 영역 위로 나가 잘린다
+    await g.evaluate(() => window.HE.setSel([window.HE.S.doc.getElementById('p1')])); await g.evaluate(() => { const w = document.querySelector('#stageWrap'); w.scrollTop = w.scrollHeight; }); await g.waitForTimeout(200);
+    const clip = await g.evaluate(() => { const o = document.querySelector('#overlay'), w = document.querySelector('#stageWrap'), c = document.querySelector('#canvas').getBoundingClientRect(), r = w.getBoundingClientRect(), m = /inset\(([\d.]+)px/.exec(o.style.clipPath || ''); const b = o.querySelector('.box').getBoundingClientRect(); return { clipTop: m ? +m[1] : -1, wrapTop: r.top - c.top + w.clientTop, boxBottom: b.bottom - c.top }; });
+    const clipOk = Math.abs(clip.clipTop - clip.wrapTop) <= 1 && clip.boxBottom <= clip.clipTop + 1;
+    // 코멘트 창을 연 채 맨 위로 올렸다가 핀이 보이지 않게 내리면 창이 닫힘
+    await g.evaluate(() => { document.querySelector('#stageWrap').scrollTop = 0; }); await g.waitForTimeout(150); await g.evaluate(() => { const p = [...document.querySelectorAll('#overlay .pin')].pop(); p.click(); }); await g.waitForTimeout(150);
+    const popOpen = await g.evaluate(() => !document.querySelector('.pop').hidden);
+    await g.evaluate(() => { const w = document.querySelector('#stageWrap'); w.scrollTop = w.scrollHeight; w.scrollLeft = w.scrollWidth; }); await g.waitForTimeout(200);
+    const pinVis = await g.evaluate(() => { const p = [...document.querySelectorAll('#overlay .pin')].pop(), w = document.querySelector('#stageWrap').getBoundingClientRect(), r = p.getBoundingClientRect(); return r.top >= w.top && r.bottom <= w.bottom && r.left >= w.left && r.right <= w.right; });
+    const popAfter = await g.evaluate(() => !document.querySelector('.pop').hidden);
+    const popOk = popOpen && (pinVis ? popAfter : !popAfter);
+    console.log('  T8', JSON.stringify({ pct, picked, bx, o2, boxOk, before, after, resizeOk, pin, px, py, pinOk, scrollOk, clip, clipOk, popOpen, pinVis, popAfter }));
+    return pct === '150%' && picked === 'p2' && boxOk && resizeOk && pinOk && scrollOk && clipOk && popOk;
+  });
+  await test('T9 150%에서 저장해도 문서에 배율이 섞이지 않음', async () => { const f = await savedOf(g); const h = readFileSync(f, 'utf8'); return !/zoom/i.test(h); });
+  await g.close(); await c3.close();
+  // T8b·T8c 상태 줄 배치와 영어 화면
+  const barCheck = (pg) => pg.evaluate(() => { const z = document.querySelector('#zoomBox').getBoundingClientRect(), kids = [...document.querySelectorAll('#zoomBox > *')].map((e) => e.getBoundingClientRect()); const inView = kids.every((r) => r.left >= 0 && r.right <= innerWidth && r.width > 0); const btnH = [...document.querySelectorAll('#zoomBox button')].every((b) => b.getBoundingClientRect().height >= 28); const ov = (sel) => { const e = document.querySelector(sel); if (!e || !e.offsetWidth) return false; const r = e.getBoundingClientRect(); return r.left < z.right - 1 && z.left < r.right - 1; }; return { inView, btnH, overR: ov('#status .r'), overWhere: ov('#where'), rShown: document.querySelector('#status .r').offsetWidth > 0, sw: document.documentElement.scrollWidth <= innerWidth }; });
+  for (const w of [1280, 1366, 1024]) await test(`T8b 상태 줄 ${w}: 조절기 보임·안내와 안 겹침·버튼 28px`, async () => { const c = await b.newContext({ viewport: { width: w, height: 768 }, acceptDownloads: true, locale: 'ko-KR' }); const pg = await open3(c); const r = await barCheck(pg); await pg.screenshot({ path: join(EVD, `구현_상태줄_${w}.png`) }); await c.close(); console.log(`  T8b ${w}`, JSON.stringify(r)); return r.inView && r.btnH && !r.overR && !r.overWhere && r.sw && (w <= 1200 ? !r.rShown : true); });
+  await test('T8c 영어 화면 조절기 문구', async () => { const c = await b.newContext({ viewport: { width: 1280, height: 768 }, acceptDownloads: true, locale: 'en-US' }); const pg = await open3(c, EDITOR + '?lang=en'); const r = await pg.evaluate(() => ({ out: document.querySelector('#zoomOut').getAttribute('aria-label'), inn: document.querySelector('#zoomIn').getAttribute('aria-label'), fit: document.querySelector('#zoomFit').textContent, tip: document.querySelector('#zoomFit').title, grp: document.querySelector('#zoomBox').getAttribute('aria-label') })); await pg.screenshot({ path: join(EVD, '구현_상태줄_en_1280.png') }); const bc = await barCheck(pg); await c.close(); console.log('  T8c', JSON.stringify({ r, bc })); return r.out === 'Zoom out' && r.inn === 'Zoom in' && r.fit === 'Fit' && r.tip === 'Fit to screen' && r.grp === 'Zoom controls' && bc.inView && !bc.overR; });
 }
 
 await b.close();

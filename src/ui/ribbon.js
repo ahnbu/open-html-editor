@@ -17,8 +17,8 @@ const tipOf=(b)=>b.dataset.t||b.getAttribute('aria-label')||'';
 function setNeed(){const e=S.sel[0];const has={el:!!e,many:S.sel.length>1,img:!!H.imgTarget(),cell:!!e&&!!e.closest&&!!e.closest('td,th')};
  document.querySelectorAll('[data-need]').forEach((b)=>{const ok=has[b.dataset.need];if(b.tagName==='BUTTON')b.disabled=!ok;else{b.classList.toggle('off',!ok);b.style.pointerEvents=ok?'':'none'}b.title=ok?tipOf(b):tt(REASON[b.dataset.need])});
  if(e){$('#iSize').value=Math.round(H.mainSize(e)||0)}else $('#iSize').value='';
- // 굵게 켜짐 표시(고른 요소의 글자 굵기)
- let bold=false;try{bold=!!e&&parseInt(H.CS(e).fontWeight,10)>=600}catch(x){}$('#bBold').setAttribute('aria-pressed',bold?'true':'false');
+ // 굵게 켜짐 표시: 글자를 고르는 중이면 그 글자, 아니면 고른 상자 안 글자 전체가 굵은지(계획 _docs/20261109_03 1번)
+ let bold=false;try{bold=!!e&&H.boldState()}catch(x){}$('#bBold').setAttribute('aria-pressed',bold?'true':'false');
  $('#bUndo').disabled=!S.undo.length;$('#bRedo').disabled=!S.redo.length;$('#gUndo').disabled=!S.undo.length;$('#gRedo').disabled=!S.redo.length;}
 // 예전 접힌 막대를 맞추던 자리. 부르는 곳이 남아 있어 빈 함수로 둔다.
 function syncMini(){}

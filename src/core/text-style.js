@@ -51,9 +51,46 @@ function setSize(px) {
   }), list);
   markContentIfDeep(list); ui().onSelect();
 }
+// 굵게 판정(계획 _docs/20261109_03 1번): 고른 글자가 전부 굵으면 끄고, 하나라도 아니면 켠다. 워드·파워포인트와 같은 규칙.
+const isBoldText = (t) => +CS(t.parentElement).fontWeight >= 600;
+function textsIn(root, rng) {
+  const out = [], w = S.doc.createTreeWalker(root, 4);
+  for (let t = w.nextNode(); t; t = w.nextNode()) if (t.data.trim() && (!rng || rng.intersectsNode(t)) && !t.parentElement.closest('svg')) out.push(t);
+  return out;
+}
+const allBold = (list) => list.length > 0 && list.every(isBoldText);
+function rangeAllBold() {
+  const s = S.win.getSelection(); if (!s || !s.rangeCount) return false; const rng = s.getRangeAt(0);
+  const c = rng.commonAncestorContainer, root = c.nodeType === 1 ? c : c.parentElement;
+  return allBold(textsIn(root, rng));
+}
+// 고른 글자의 실제 굵기를 끈다. b·strong은 풀고(글자는 남김), CSS 클래스 등으로 굵던 요소에는 인라인 400을 준다(인라인이 클래스보다 우선).
+// 색·크기·링크 같은 다른 서식과 범위 밖 글자는 건드리지 않는다.
+function unboldRange() {
+  const s = S.win.getSelection(), rng = s.getRangeAt(0), c = rng.commonAncestorContainer, root = c.nodeType === 1 ? c : c.parentElement;
+  const MARK = 'data-he-unb', marked = [];
+  root.querySelectorAll('*').forEach((e) => { if (rng.intersectsNode(e) && +CS(e).fontWeight >= 600) { e.setAttribute(MARK, ''); marked.push(e); } });
+  const frag = rng.extractContents();
+  marked.forEach((e) => e.removeAttribute(MARK)); // 범위 밖에 남은 쪽(반만 고른 요소의 원본)은 표시만 지운다
+  frag.querySelectorAll('b,strong').forEach((b) => b.replaceWith(...b.childNodes));
+  frag.querySelectorAll(`[${MARK}]`).forEach((e) => { e.style.fontWeight = '400'; e.removeAttribute(MARK); });
+  const sp = S.doc.createElement('span'); sp.style.fontWeight = '400'; sp.appendChild(frag); rng.insertNode(sp);
+  s.removeAllRanges(); const r2 = S.doc.createRange(); r2.selectNodeContents(sp); s.addRange(r2);
+}
+// 굵게 버튼 눌림 표시: 글자를 고르는 중이면 그 글자, 아니면 고른 상자 안 글자 전체가 기준
+function boldState() {
+  if (hasRange()) return rangeAllBold();
+  return S.sel.length > 0 && S.sel.every((el) => allBold(textsIn(el)));
+}
+api.boldState = boldState;
 function toggleBold() {
-  if (hasRange()) { S.textOp = true; withRange({ fontWeight: '800' }); return; }
-  const list = S.sel; if (!list.length) return; const on = +CS(list[0]).fontWeight >= 600;
-  op(T('op.bold'), () => list.forEach((el) => setStyle(el, 'font-weight', on ? '400' : '800')), list);
+  if (hasRange()) { S.textOp = true; if (rangeAllBold()) unboldRange(); else withRange({ fontWeight: '800' }); ui().onSelect(); return; }
+  const list = S.sel; if (!list.length) return; const on = boldState();
+  // 상자 단위: 상자와 안쪽 글자를 함께 켜고 끈다(안쪽 b·strong·클래스 굵기가 남지 않게). 되돌리기 한 번에 함께 돌아간다.
+  op(T('op.bold'), () => list.forEach((el) => {
+    setStyle(el, 'font-weight', on ? '400' : '800');
+    el.querySelectorAll('*').forEach((k) => { if (k.nodeType !== 1 || !k.style || k.closest('svg')) return; const b = +CS(k).fontWeight >= 600; if (on ? b : !b && [...k.childNodes].some((n) => n.nodeType === 3 && n.data.trim())) setStyleDeep(el, k, 'font-weight', on ? '400' : '800'); });
+  }), list);
+  markContentIfDeep(list); ui().onSelect();
 }
 const align = (v) => S.sel.length && op(T('op.textAlign'), () => S.sel.forEach((el) => setStyle(el, 'text-align', v)), S.sel);

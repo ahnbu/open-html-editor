@@ -170,7 +170,7 @@
 <div id="work">
  <div id="side"><div id="sideHead"><b id="sideCount"></b><button id="bSideFold" data-i18n="side.fold" data-i18n-attr="title:side.foldTip"></button></div><iframe id="thumbs" data-i18n-attr="title:side.list"></iframe></div>
  <div id="rail"><button id="bSideOpen" data-i18n-attr="title:side.openTip">»</button><span id="railPos"></span></div>
- <div id="canvas"><iframe id="stage" data-i18n-attr="title:stage.title"></iframe><div id="notesBar" class="deck-only"><div class="nh"><b data-i18n="notes.title"></b><button id="bNotesFold"></button></div><textarea id="notesIn" spellcheck="false" data-i18n-attr="aria-label:notes.title;placeholder:notes.placeholder"></textarea></div><div id="overlay"></div></div>
+ <div id="canvas"><div id="stageWrap"><iframe id="stage" data-i18n-attr="title:stage.title"></iframe></div><div id="notesBar" class="deck-only"><div class="nh"><b data-i18n="notes.title"></b><button id="bNotesFold"></button></div><textarea id="notesIn" spellcheck="false" data-i18n-attr="aria-label:notes.title;placeholder:notes.placeholder"></textarea></div><div id="overlay"></div></div>
 </div>
 <div id="pv" hidden tabindex="-1" data-i18n-attr="aria-label:pv.title">
  <header><div id="pvTimer">00:00</div><button id="pvPause"></button><button id="pvReset" data-i18n="pv.reset"></button><span id="pvClock"></span><span id="pvPage"></span><button id="pvPrev" data-i18n="pv.prev"></button><button id="pvNext" class="go" data-i18n="pv.next"></button><button id="pvEnd" data-i18n="pv.end"></button></header>
@@ -178,7 +178,7 @@
  <div id="pvSide"><div class="pane"><h3 data-i18n="pv.next2"></h3><div class="frame" id="pvNxtBox"><iframe id="pvNxt" data-i18n-attr="title:pv.next2"></iframe></div></div><div id="pvNotes" data-i18n-attr="data-empty:pv.noNotes"></div></div>
  <iframe id="pvRail" data-i18n-attr="title:side.list"></iframe>
 </div>
-<div id="status"><span id="msg" role="status" data-i18n="status.openPrompt"></span><span id="where"></span><span class="r" data-i18n="status.keys"></span></div>
+<div id="status"><span id="msg" role="status" data-i18n="status.openPrompt"></span><span id="where"></span><span class="r" data-i18n="status.keys"></span><span id="zoomBox" role="group" data-i18n-attr="aria-label:zoom.group"><button id="zoomOut" type="button" data-i18n-attr="aria-label:zoom.out;title:zoom.out">−</button><span id="zoomPct">100%</span><button id="zoomIn" type="button" data-i18n-attr="aria-label:zoom.in;title:zoom.in">+</button><button id="zoomFit" type="button" data-i18n="zoom.fit" data-i18n-attr="title:zoom.fitTip"></button></span></div>
 
 <div id="grid"><div id="gridBar"><b data-i18n="grid.title"></b><span data-i18n="grid.hint"></span><span class="gr"><button class="gbtn" id="gUndo" title="Ctrl+Z"><svg viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6"/></svg><span data-i18n="grid.undo"></span></button><button class="gbtn" id="gRedo" title="Ctrl+Y"><svg viewBox="0 0 24 24"><path d="m15 7 5 5-5 5"/><path d="M20 12H10a6 6 0 0 0-6 6"/></svg><span data-i18n="grid.redo"></span></button><button id="gridClose" data-i18n="grid.close"></button></span></div><iframe id="gridFrame" data-i18n-attr="title:grid.title"></iframe></div>
 <dialog id="dlg"><form method="dialog"><label><span data-i18n="find.what"></span><input id="fa"></label><label><span data-i18n="find.with"></span><input id="fb"></label><div class="row"><button value="no" data-i18n="dlg.cancel"></button><button class="go" value="go" data-i18n="find.all"></button></div></form></dialog>

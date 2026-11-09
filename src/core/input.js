@@ -46,6 +46,18 @@ function textByBox(x, y) {
   const p = best && pick(best); return p && p.tagName !== 'IMG' ? p : null;
 }
 api.layersAt = layersAt;
+// 장표 확대(계획 _docs/20261109_03 2번)의 엔진 차이 보정. 사파리(webkit)는 확대된 무대 안에서 요소 위치(getBoundingClientRect·elementsFromPoint)를
+// 마우스 이벤트 좌표(clientX)보다 1/배율 작은 단위로 준다(2026-11-09 실측). 크롬·파이어폭스는 둘이 같아 1이다.
+// 배율 1일 때의 「요소 위치 ÷ CSS 크기」를 기준으로 잡아, 덱 자체에 zoom이 걸린 문서도 기준이 같아 1로 남는다.
+function rectK() {
+  const de = S.doc && S.doc.documentElement; if (!de || !de.offsetWidth) return 1;
+  const r = de.getBoundingClientRect().width / de.offsetWidth || 1;
+  if ((S.zoom || 1) === 1) { S.rectBase = r; return 1; }
+  return r / (S.rectBase || 1);
+}
+api.rectK = rectK;
+// 무대 안 이벤트의 좌표를 요소 위치 단위로 바꾼 것(배율 1·크롬·파이어폭스는 그대로)
+const pt = (e) => { const k = rectK(); return k === 1 ? e : { clientX: e.clientX * k, clientY: e.clientY * k, target: e.target }; };
 function hookEvents(win) {
   if (win.__heHooked) return; win.__heHooked = true;
   // ⑧e 편집 화면에 파일을 끌어다 놓으면 다른 파일 열기와 같다(틀 안의 놓기는 바깥 창에 오지 않는다). 글자 끌기는 그대로 둔다.
@@ -56,28 +68,30 @@ function hookEvents(win) {
   let dragging = null, press = null, lastUp = 0, cycledFrom = null;
   win.addEventListener('pointerdown', (e) => {
     if (!block(e)) return; if (S.editing && S.editing.contains(e.target)) return;
+    const q = pt(e);
     // 코멘트 모드: 누른 자리에 코멘트를 단다. 요소는 옮기지 않는다.
-    if (S.mode === 'comment') { e.preventDefault(); finishText(); const c = addComment(e.clientX, e.clientY, pick(under(e))); if (c) ui().onComments(c.id); return; }
-    finishText(); let t = pick(under(e));
+    if (S.mode === 'comment') { e.preventDefault(); finishText(); const c = addComment(q.clientX, q.clientY, pick(under(q))); if (c) ui().onComments(c.id); return; }
+    finishText(); let t = pick(under(q));
     // 아래로 내려가 고른 요소는 그 자리에서 다시 눌러도 유지해야 끌어 옮길 수 있다.
-    const low = S.sel.length === 1 && S.cycled === S.sel[0] && layersAt(e.clientX, e.clientY).includes(S.sel[0]) ? S.sel[0] : null;
+    const low = S.sel.length === 1 && S.cycled === S.sel[0] && layersAt(q.clientX, q.clientY).includes(S.sel[0]) ? S.sel[0] : null;
     if (low) t = low;
     if (!t) { clearSel(); S.cycled = null; press = null; return; }
     e.preventDefault();
     if (e.shiftKey) { setSel(S.sel.includes(t) ? S.sel.filter((x) => x !== t) : [...S.sel, t]); S.cycled = null; press = null; return; }
-    press = { x: e.clientX, y: e.clientY, again: S.sel.length === 1 && S.sel[0] === t };
+    press = { x: q.clientX, y: q.clientY, again: S.sel.length === 1 && S.sel[0] === t };
     if (!S.sel.includes(t)) { setSel([t]); S.cycled = null; }
     if (t.closest('td,th')) return;
-    dragging = { x: e.clientX, y: e.clientY, moved: false, els: S.sel.slice(), last: { x: 0, y: 0 }, s: scaleOf(t) };
+    dragging = { x: q.clientX, y: q.clientY, moved: false, els: S.sel.slice(), last: { x: 0, y: 0 }, s: scaleOf(t) };
   }, true);
   win.addEventListener('pointermove', (e) => {
     if (S.mode === 'view') return; e.stopImmediatePropagation();
     if (!dragging) return;
-    if (!dragging.moved && Math.abs(e.clientX - dragging.x) + Math.abs(e.clientY - dragging.y) < 4) return;
+    const q = pt(e);
+    if (!dragging.moved && Math.abs(q.clientX - dragging.x) + Math.abs(q.clientY - dragging.y) < 4) return;
     if (!dragging.moved) { dragging.moved = true; dragging.px = dragging.x; dragging.py = dragging.y; dragging.ax = 0; dragging.ay = 0; begin(); }
     // Ctrl(맥은 Cmd)·Alt를 누르면 마우스의 1/5만 움직인다. 누르고 떼도 튀지 않게 조금씩 더한다.
     const fine = e.ctrlKey || e.metaKey || e.altKey ? 0.2 : 1;
-    dragging.ax += (e.clientX - dragging.px) / dragging.s * fine; dragging.ay += (e.clientY - dragging.py) / dragging.s * fine; dragging.px = e.clientX; dragging.py = e.clientY;
+    dragging.ax += (q.clientX - dragging.px) / dragging.s * fine; dragging.ay += (q.clientY - dragging.py) / dragging.s * fine; dragging.px = q.clientX; dragging.py = q.clientY;
     let dx = dragging.ax, dy = dragging.ay;
     // Shift를 누르면 많이 움직인 쪽(가로 또는 세로)으로만 옮긴다.
     if (e.shiftKey) { if (Math.abs(dx) >= Math.abs(dy)) dy = 0; else dx = 0; }
@@ -97,15 +111,20 @@ function hookEvents(win) {
     press = null;
   };
   win.addEventListener('pointerup', up, true); win.addEventListener('pointercancel', up, true);
+  // Ctrl(맥 Cmd)+휠·트랙패드 집기는 브라우저 전체가 아니라 장표만 확대·축소한다(계획 _docs/20261109_03 2번). 화면 층이 배율을 바꾼다.
+  win.addEventListener('wheel', (e) => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); e.stopImmediatePropagation(); const u = ui(); if (u.onZoomWheel) u.onZoomWheel(e); }, { capture: true, passive: false });
+  // 글자를 고르는 동안 굵게 눌림 표시를 고른 글자 기준으로 맞춘다
+  win.document.addEventListener('selectionchange', () => { if (S.editing) ui().onSelect(); });
   for (const t of ['mousedown', 'mouseup', 'click', 'auxclick', 'touchstart', 'touchend', 'wheel', 'contextmenu', 'dragstart', 'submit']) {
     win.addEventListener(t, (e) => { if (S.bypass || S.mode === 'view') return; if (S.editing && S.editing.contains(e.target)) { e.stopImmediatePropagation(); return; } e.stopImmediatePropagation(); if (t !== 'wheel' && t !== 'mousedown') e.preventDefault(); }, { capture: true, passive: false });
   }
   win.addEventListener('dblclick', (e) => {
     if (S.mode === 'view') return; e.stopImmediatePropagation(); e.preventDefault();
     // 다시 눌러 아래 글자까지 내려갔으면 맨 위 글자가 아니라 그 글자를 고친다.
-    const hit = layersAt(e.clientX, e.clientY), down = [cycledFrom && e.timeStamp - cycledFrom.at < 600 ? cycledFrom.el : null, S.cycled].find((x) => x && hit.includes(x) && x.tagName !== 'IMG' && x.tagName.toLowerCase() !== 'svg' && x.textContent.trim());
+    const q = pt(e);
+    const hit = layersAt(q.clientX, q.clientY), down = [cycledFrom && e.timeStamp - cycledFrom.at < 600 ? cycledFrom.el : null, S.cycled].find((x) => x && hit.includes(x) && x.tagName !== 'IMG' && x.tagName.toLowerCase() !== 'svg' && x.textContent.trim());
     cycledFrom = null;
-    const t = down || textAt(e) || textByBox(e.clientX, e.clientY) || pick(under(e));
+    const t = down || textAt(q) || textByBox(q.clientX, q.clientY) || pick(under(q));
     if (t && t.tagName !== 'IMG' && t.tagName.toLowerCase() !== 'svg' && t.textContent.trim()) startText(t);
   }, true);
   for (const t of ['keydown', 'keyup', 'keypress']) win.addEventListener(t, (e) => { if (S.bypass || S.mode === 'view') return; e.stopImmediatePropagation(); if (t === 'keydown') onKey(e); }, true);
