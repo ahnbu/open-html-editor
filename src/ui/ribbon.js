@@ -7,7 +7,7 @@ const t=(k,v)=>window.HE_T(k,v),tt=(k,v)=>window.HE_TT(k,v);
 const REASON={el:'need.el',many:'need.many',img:'need.img',cell:'need.cell'};
 const msg=(t)=>{$('#msg').textContent=t};
 // 언어에 따라 바뀌는 버튼 이름. 막대 아이콘은 글자가 없어 말풍선(title)과 aria-label이 이름이다.
-function aiLabels(){const k=S.server?'btn.aiApply':'btn.aiCopy';$('#aiLabel').innerHTML=t(k);const tip=tt(S.server?'btn.aiApplyTip':'btn.aiCopyTip');$('#bAI').title=tip;$('#bAI').setAttribute('aria-label',tt(k));$('#bAI').dataset.t=tip}
+function aiLabels(){const k=S.server?'btn.aiApply':'btn.aiCopy';$('#aiLabel').innerHTML=t(k);const tip=tt(S.server?'btn.aiApplyTip':'btn.aiCopyTip');$('#bAI').title=tip;$('#bAI').setAttribute('aria-label',tt(k));$('#bAI').dataset.t=tip;/* 아이콘: 사이트는 복사(겹친 네모), 내 맥 연결 모드는 반짝이(계획 _docs/20261110_01 4번) */$('#bAI').classList.toggle('apply',!!S.server)}
 aiLabels();
 // 메뉴 열림 표시: 메뉴를 여는 버튼마다 aria-expanded를 메뉴 상태에 맞춘다
 function syncMenus(){document.querySelectorAll('[data-menu]').forEach((b)=>{const m=$('#'+b.dataset.menu);if(m)b.setAttribute('aria-expanded',m.classList.contains('open')?'true':'false')})}
@@ -16,7 +16,9 @@ new MutationObserver(syncMenus).observe(document.body,{subtree:true,attributes:t
 const tipOf=(b)=>b.dataset.t||b.getAttribute('aria-label')||'';
 function setNeed(){const e=S.sel[0];const has={el:!!e,many:S.sel.length>1,img:!!H.imgTarget(),cell:!!e&&!!e.closest&&!!e.closest('td,th')};
  document.querySelectorAll('[data-need]').forEach((b)=>{const ok=has[b.dataset.need];if(b.tagName==='BUTTON')b.disabled=!ok;else{b.classList.toggle('off',!ok);b.style.pointerEvents=ok?'':'none'}b.title=ok?tipOf(b):tt(REASON[b.dataset.need])});
- if(e){$('#iSize').value=Math.round(H.mainSize(e)||0)}else $('#iSize').value='';
+ // 크기 칸: 글자 범위를 골랐으면 그 범위 크기(섞였으면 빈칸), 아니면 상자의 주된 크기(계획 _docs/20261110_01 7번)
+ const rs=H.rangeSize?H.rangeSize():null;
+ if(rs!=null)$('#iSize').value=rs?Math.round(rs):'';else if(e){$('#iSize').value=Math.round(H.mainSize(e)||0)}else $('#iSize').value='';
  // 굵게 켜짐 표시: 글자를 고르는 중이면 그 글자, 아니면 고른 상자 안 글자 전체가 굵은지(계획 _docs/20261109_03 1번)
  let bold=false;try{bold=!!e&&H.boldState()}catch(x){}$('#bBold').setAttribute('aria-pressed',bold?'true':'false');
  $('#bUndo').disabled=!S.undo.length;$('#bRedo').disabled=!S.redo.length;$('#gUndo').disabled=!S.undo.length;$('#gRedo').disabled=!S.redo.length;}

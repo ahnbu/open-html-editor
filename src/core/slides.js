@@ -24,7 +24,8 @@ async function goToNow(i) {
   const list = slides(); if (!list.length) return;
   i = Math.max(0, Math.min(list.length - 1, i));
   const ds = S.doc.querySelector('deck-stage');
-  if (isDoc()) { list[i].scrollIntoView({ block: 'start' }); S.cur = i; if (S.mo) S.mo.takeRecords(); clearSel(); ui().onSlide(); return; }
+  // 문서: 바로(부드러운 스크롤 없이) 옮기고, 그 위치를 고정 기준(S.docPin)으로 둔다 — 스크롤 처리가 번호를 덮어쓰지 않게(계획 _docs/20261110_01 2번)
+  if (isDoc()) { list[i].scrollIntoView({ block: 'start', behavior: 'instant' }); S.cur = i; S.docPin = { i, y: S.win.scrollY }; if (S.mo) S.mo.takeRecords(); clearSel(); ui().onSlide(); return; }
   // 장 넘기기는 덱 코드가 한다. 멈춰 둔 움직임을 잠깐 풀고 넘긴 뒤 조용해지면 다시 멈춘다(계획 _docs/20261107_02 ⓐ).
   const wasFrozen = api.freezeState(); if (wasFrozen) thaw();
   try { await navTo(i, ds, list); } finally { if (wasFrozen) freezeWhenQuiet(1500); }

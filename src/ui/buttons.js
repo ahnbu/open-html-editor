@@ -56,5 +56,24 @@ $('#iImg').addEventListener('change',(e)=>{if(e.target.files[0])H.replaceImage(e
 // 「그림」은 label이라 키보드로는 파일 창이 안 열린다 — Enter·Space로 연다(계획 _docs/20261105_06 2e)
 $('#bImgAdd').addEventListener('keydown',(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();$('#iImgAdd').click()}});
 $('#iImgAdd').addEventListener('change',(e)=>{if(e.target.files[0])H.addImage(e.target.files[0]);e.target.value=''});
-on('#bFind',()=>$('#dlg').showModal());
-$('#dlg').addEventListener('close',()=>{if($('#dlg').returnValue==='go'){const n=H.replaceAll($('#fa').value,$('#fb').value);msg(tt('msg.replaced',{n}))}});
+// 찾기 막대(계획 _docs/20261110_01 3번, 승인 시안 _docs/20261110_01_근거/시안/찾기막대_1280.png): 무대 오른쪽 위에 겹쳐 뜬다. 결과를 보며 문서를 계속 만질 수 있다.
+// 입력하는 대로 모든 자리를 칠하고(노랑), 지금 자리(주황)로 옮긴다. Ctrl/Cmd+F는 바깥 창·문서 안 모두 H.onKey → onFindKey로 온다.
+const F={list:[],cur:-1};let fTimer=0;
+function openFind(){if(!S.doc)return;if(S.editing)H.finishText();const b=$('#findBar');b.hidden=false;const a=$('#fa');a.focus();a.select();if(a.value)runFind()}
+function closeFind(){clearTimeout(fTimer);$('#findBar').hidden=true;H.clearFind();F.list=[];F.cur=-1}
+function findCount(){const q=$('#fa').value,n=F.list.length;$('#fCount').textContent=q?(n?(F.cur+1)+'/'+n:tt('find.none')):'';$('#fCount').classList.toggle('none',!!q&&!n);
+ for(const id of ['#fPrev','#fNext'])$(id).disabled=!n;for(const id of ['#fRep','#fRepAll'])$(id).disabled=!q||!n}
+async function showFind(i){if($('#findBar').hidden)return;/* 닫힌 뒤 늦게 도착한 검색은 칠하지 않는다(완료 검수 1회차 지적) */const n=F.list.length;if(!n){F.cur=-1;H.setFindHighlight([],-1);findCount();return}F.cur=((i%n)+n)%n;await H.revealRange(F.list[F.cur]);H.setFindHighlight(F.list,F.cur);findCount()}
+function runFind(keep){F.list=H.findAll($('#fa').value);return showFind(keep==null?0:Math.min(keep,F.list.length-1))}
+on('#bFind',openFind);
+$('#fa').addEventListener('input',()=>{clearTimeout(fTimer);fTimer=setTimeout(()=>runFind(),120)});
+$('#fa').addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();showFind(F.cur+(e.shiftKey?-1:1))}else if(e.key==='Escape'){e.preventDefault();closeFind()}});
+$('#fb').addEventListener('keydown',(e)=>{if(e.key==='Escape'){e.preventDefault();closeFind()}else if(e.key==='Enter'&&!e.isComposing){e.preventDefault();$('#fRep').click()}});
+on('#fNext',()=>showFind(F.cur+1));on('#fPrev',()=>showFind(F.cur-1));on('#fClose',closeFind);
+on('#fToggle',()=>{const b=$('#findBar'),o=!b.classList.contains('rep');b.classList.toggle('rep',o);$('#fToggle').setAttribute('aria-expanded',String(o))});
+// 바꾸기 전에 입력 중인 글자를 먼저 확정한다 — 확정 전 입력은 바꾸기의 새 변경 기록에 밀려 저장에서 빠졌다(완료 검수 1회차 지적). 확정하면 글자가 바뀌므로 다시 찾은 뒤 바꾼다.
+function settleTyping(){if(!S.editing)return false;H.finishText();F.list=H.findAll($('#fa').value);F.cur=Math.min(Math.max(0,F.cur),F.list.length-1);return true}
+on('#fRep',()=>{settleTyping();const r=F.list[F.cur],k=F.cur;if(r&&H.replaceOne(r,$('#fb').value)){runFind(k);msg(tt('msg.replaced',{n:1}))}});
+on('#fRepAll',()=>{settleTyping();const n=H.replaceAll($('#fa').value,$('#fb').value);runFind();msg(tt('msg.replaced',{n}))});
+// 문서를 고치면(되돌리기 포함) 찾은 자리가 달라질 수 있다 — 막대가 열려 있으면 다시 찾는다(hooks.js onChange가 부른다)
+function refreshFind(){if(!$('#findBar').hidden&&$('#fa').value)runFind(Math.max(0,F.cur))}

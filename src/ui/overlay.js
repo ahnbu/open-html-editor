@@ -5,7 +5,8 @@
 // 계산은 본체 H.rectK(input.js) 한 곳 — 배율 1일 때를 기준으로 삼아 덱 자체의 zoom은 1로 남긴다
 function innerRectScale(){return H.rectK?H.rectK():1}
 // 무대 안 좌표 1 → 바깥 화면 px. 크롬 = 배율, 사파리 = 배율²
-function stageFactor(){return stageZoom()/innerRectScale()}
+// 문서는 배율이 문서 안(html zoom)에 있어 요소 좌표가 이미 화면 단위로 나온다 → 바깥 배율 1(계획 _docs/20261110_01 8번, 실측 spike-doczoom.mjs)
+function stageFactor(){return outerZoom()/innerRectScale()}
 function stageOrigin(){const f=$('#stage').getBoundingClientRect(),c=$('#canvas').getBoundingClientRect();return {ox:f.left-c.left,oy:f.top-c.top,z:stageFactor()}}
 function toCanvas(r){const {ox,oy,z}=stageOrigin();return {left:ox+r.left*z,top:oy+r.top*z,width:r.width*z,height:r.height*z,right:ox+r.right*z,bottom:oy+r.bottom*z}}
 // 덧씌움은 #canvas 전체를 덮으므로, 무대 칸(#stageWrap)의 보이는 영역 밖(노트 칸·회색 여백)에 그려진 것은 잘라 낸다

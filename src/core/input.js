@@ -50,6 +50,8 @@ api.layersAt = layersAt;
 // 마우스 이벤트 좌표(clientX)보다 1/배율 작은 단위로 준다(2026-11-09 실측). 크롬·파이어폭스는 둘이 같아 1이다.
 // 배율 1일 때의 「요소 위치 ÷ CSS 크기」를 기준으로 잡아, 덱 자체에 zoom이 걸린 문서도 기준이 같아 1로 남는다.
 function rectK() {
+  // 문서(구역·쪽)는 배율을 문서 안 html에 준다 — 요소 좌표와 마우스 좌표가 같은 화면 단위라 보정이 없다(계획 _docs/20261110_01 8번 실측)
+  if (isDoc()) return 1;
   const de = S.doc && S.doc.documentElement; if (!de || !de.offsetWidth) return 1;
   const r = de.getBoundingClientRect().width / de.offsetWidth || 1;
   if ((S.zoom || 1) === 1) { S.rectBase = r; return 1; }
@@ -62,8 +64,9 @@ function hookEvents(win) {
   if (win.__heHooked) return; win.__heHooked = true;
   // ⑧e 편집 화면에 파일을 끌어다 놓으면 다른 파일 열기와 같다(틀 안의 놓기는 바깥 창에 오지 않는다). 글자 끌기는 그대로 둔다.
   const hasFiles = (e) => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
-  win.addEventListener('dragover', (e) => { if (hasFiles(e)) e.preventDefault(); }, true);
-  win.addEventListener('drop', (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.stopImmediatePropagation(); ui().onDropFiles(e.dataTransfer); }, true);
+  // 파일을 끄는 동안 화면 쪽 덮개를 띄운다(계획 _docs/20261110_01 9번) — 틀 안의 끌기는 바깥 창에 오지 않아 여기서 알린다
+  win.addEventListener('dragover', (e) => { if (hasFiles(e)) { e.preventDefault(); const u = ui(); if (u.onFileDrag) u.onFileDrag(true); } }, true);
+  win.addEventListener('drop', (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.stopImmediatePropagation(); const u = ui(); if (u.onFileDrag) u.onFileDrag(false); u.onDropFiles(e.dataTransfer); }, true);
   const block = (e) => { if (S.bypass || S.mode === 'view') return false; e.stopImmediatePropagation(); return true; };
   let dragging = null, press = null, lastUp = 0, cycledFrom = null;
   win.addEventListener('pointerdown', (e) => {
@@ -142,6 +145,7 @@ function onKey(e) {
   if (mod && c === 'KeyS') { e.preventDefault(); if (e.shiftKey) saveAs(); else save(); return; }
   if (mod && c === 'KeyO' && !e.shiftKey && !e.altKey) { e.preventDefault(); ui().onOpenKey(); return; } // ⑧e 다른 파일 열기(브라우저 기본 열기를 막는다)
   if (mod && c === 'KeyP' && !e.shiftKey && !e.altKey) { e.preventDefault(); ui().onPrintKey(); return; } // PDF로 저장 — 글자 입력 중에도(계획 _docs/20261105_04 3b)
+  if (mod && c === 'KeyF' && !e.shiftKey && !e.altKey) { e.preventDefault(); if (ui().onFindKey) ui().onFindKey(); return; } // 찾기 막대(계획 _docs/20261110_01 3번) — 문서 안 키는 여기서만 받는다
   if (S.editing) { if (c === 'Escape') { e.preventDefault(); finishText(); } return; }
   if (mod && c === 'KeyZ') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
   if (mod && c === 'KeyY') { e.preventDefault(); redo(); return; }

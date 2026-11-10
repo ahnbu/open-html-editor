@@ -10,14 +10,20 @@ const ZMIN=0.25,ZMAX=3,ZSTEP=0.1;
 function stageZoom(){return S.zoom||1}
 function fitStage(){const st=$('#stage'),wrap=$('#stageWrap'),r=S.stageRatio,z=stageZoom();st.style.width='';st.style.height='';st.style.flex='';st.style.alignSelf='';st.style.zoom='';if(!S.doc)return;
  const avail=wrap.getBoundingClientRect();let w=avail.width,h=avail.height;if(r){h=w/r;if(h>avail.height){h=avail.height;w=h*r}}
- st.style.flex='0 0 auto';st.style.width=Math.floor(w)+'px';st.style.height=Math.floor(h)+'px';if(z!==1)st.style.zoom=String(z);zoomLabel()}
+ // 문서(구역·쪽)는 틀이 아니라 문서 안쪽에 배율을 준다(계획 _docs/20261110_01 8번): 틀 안 스크롤막대가 배율을 타지 않고, 축소하면 문서가 더 많이 보인다.
+ // 문서 안 배율은 편집기 스타일(#he-style, 저장본에 없음)이 S.zoom을 읽어 넣는다. 덱은 지금처럼 틀에 zoom.
+ st.style.flex='0 0 auto';st.style.width=Math.floor(w)+'px';st.style.height=Math.floor(h)+'px';if(H.isDoc())H.refreshEditorCss();else if(z!==1)st.style.zoom=String(z);zoomLabel()}
+// 바깥 틀에 걸린 배율(문서는 늘 1 — 배율이 문서 안에 있다)
+function outerZoom(){return H.isDoc()?1:stageZoom()}
 function zoomLabel(){const z=stageZoom();$('#zoomPct').textContent=Math.round(z*100)+'%';$('#zoomOut').disabled=!S.doc||z<=ZMIN+1e-6;$('#zoomIn').disabled=!S.doc||z>=ZMAX-1e-6;$('#zoomFit').disabled=!S.doc||Math.abs(z-1)<1e-6}
 // 배율을 바꾸고, (ax,ay) 화면 점 아래의 장표 자리가 그대로 남도록 스크롤을 맞춘다. 점이 없으면 무대 가운데 기준.
 function setZoom(nz,ax,ay){if(!S.doc)return;H.rectK();/* 배율 1의 기준값을 바꾸기 전에 잡아 둔다 */const wrap=$('#stageWrap'),z0=stageZoom();nz=Math.round(Math.min(ZMAX,Math.max(ZMIN,nz))*100)/100;if(Math.abs(nz-z0)<1e-6)return;
  const wr=wrap.getBoundingClientRect(),st=$('#stage').getBoundingClientRect();if(ax==null){ax=wr.left+wr.width/2;ay=wr.top+wr.height/2}
+ // 문서: 틀은 그대로이고 문서 안이 커지므로, 기준점 아래 문서 자리가 남게 문서 안 스크롤을 맞춘다
+ if(H.isDoc()){const w=S.win,ix=ax-st.left,iy=ay-st.top,dx=(ix+w.scrollX)/z0,dy=(iy+w.scrollY)/z0;S.zoom=nz;S.docPin=null;fitStage();w.scrollTo(dx*nz-ix,dy*nz-iy);closePopIfHidden();sync();return}
  const cx=(ax-st.left)/z0,cy=(ay-st.top)/z0;S.zoom=nz;fitStage();
  const st2=$('#stage').getBoundingClientRect();wrap.scrollLeft+=st2.left+cx*nz-ax;wrap.scrollTop+=st2.top+cy*nz-ay;closePopIfHidden();sync()}
-function zoomFit(){if(!S.doc)return;S.zoom=1;fitStage();const w=$('#stageWrap');w.scrollLeft=0;w.scrollTop=0;closePopIfHidden();sync()}
+function zoomFit(){if(!S.doc)return;if(H.isDoc()){setZoom(1);return}S.zoom=1;fitStage();const w=$('#stageWrap');w.scrollLeft=0;w.scrollTop=0;closePopIfHidden();sync()}
 // 휠: 마우스 한 칸(대략 deltaY 100)마다 10%p. 트랙패드 집기는 작은 값이 여러 번 오므로 모아서 바꾼다.
 let zAcc=0;
 function zoomWheel(dy,mode,ax,ay){zAcc+=mode===1?dy*33:mode===2?dy*400:dy;if(Math.abs(zAcc)<40)return;const n=Math.max(1,Math.min(3,Math.round(Math.abs(zAcc)/100)))*Math.sign(zAcc);zAcc=0;setZoom(stageZoom()-n*ZSTEP,ax,ay)}

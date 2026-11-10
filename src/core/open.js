@@ -158,13 +158,27 @@ const ROOTS = 'html,body,main,#deck,deck-stage,.s-body,section,.slide';
 const stepCss = () => (S.stepsOpen ? '.he-cur [data-step],.he-cur [data-exit],.he-cur .fragment,.he-cur [data-step] *,.he-cur [data-exit] *{opacity:1!important;visibility:visible!important;pointer-events:auto!important}' : '')
   + '*{user-select:none!important}body *{cursor:pointer!important}' + ROOTS + '{cursor:default!important}'
   + '[data-he-sel],[data-he-sel] *{cursor:grab!important}[data-he-sel]:active,[data-he-sel]:active *{cursor:grabbing!important}'
-  + '[contenteditable=true],[contenteditable=true] *{outline:none;cursor:text!important;user-select:text!important}';
+  + '[contenteditable=true],[contenteditable=true] *{outline:none;cursor:text!important;user-select:text!important}'
+  + '::highlight(he-find){background:#FFE066;color:inherit}::highlight(he-find-cur){background:#FF5B14;color:#fff}'
+  + docCss();
+// 문서(구역·쪽) 편집 중에만 붙는 표시(계획 _docs/20261110_01 2·8번). 편집기 스타일(#he-style)에만 있고 저장본에는 없다.
+//  - 끝 여백: 마지막 구역도 화면 맨 위로 올라오게 문서 끝에 창 높이만큼 여백을 둔다(짧은 끝 구역을 눌러도 이동이 보이게)
+//  - 배율: 문서는 틀(iframe)이 아니라 문서 안쪽(html)에 zoom을 준다 — 틀 안 스크롤막대가 배율을 타지 않고, 축소하면 문서가 더 많이 보인다
+const docCss = () => (S.view && S.view !== 'deck')
+  ? 'html{padding-bottom:calc(100vh - 48px)!important}' + ((S.zoom || 1) !== 1 ? 'html{zoom:' + S.zoom + '!important}' : '')
+  : '';
+function refreshEditorCss() { const st = S.doc && S.doc.getElementById('he-style'); if (st) st.textContent = stepCss(); }
+api.refreshEditorCss = refreshEditorCss;
 // 고른 요소에 표시를 달아 잡는 손 모양 포인터를 보인다. 저장본에서는 clean이 지운다.
 function markSel() { if (!S.doc) return; S.doc.querySelectorAll('[data-he-sel]').forEach((x) => x.removeAttribute('data-he-sel')); S.sel.forEach((e) => { if (e.setAttribute && !e.closest('td,th')) e.setAttribute('data-he-sel', '1'); }); }
 // 문서를 스크롤하면 지금 보는 쪽·구역을 따라간다(덱은 덱 코드가 장을 넘긴다)
 let scrollTimer = 0;
 // 스크롤에 맞춰 나타나는 효과(ScrollTrigger 등)가 돌 수 있게 스크롤하는 동안만 움직임을 풀었다가 멈추면 다시 멈춘다.
-function onDocScroll() { if (!isDoc()) return; thaw(); freezeWhenQuiet(1500); clearTimeout(scrollTimer); scrollTimer = setTimeout(() => { const i = docIndex(); if (i !== S.cur) { S.cur = i; ui().onSlide(); } else ui().syncOverlay(); }, 60); ui().syncOverlay(); }
+// 구역 카드로 이동한 직후(S.docPin)는 그 이동이 만든 스크롤이므로 번호를 덮어쓰지 않는다 — 짧은 끝 구역 여러 개가 화면 위 1/3에 함께 들어오면
+// 화면 기준 번호(docIndex)는 뒤 구역을 가리키기 때문이다(계획 _docs/20261110_01 2번, 계획 검수 1회차 차단 지적). 사용자가 직접 움직여 위치가 이동 목표에서 벗어나면 고정을 풀고 다시 따라간다.
+function onDocScroll() { if (!isDoc()) return; thaw(); freezeWhenQuiet(1500); clearTimeout(scrollTimer); scrollTimer = setTimeout(() => {
+  const p = S.docPin; if (p && Math.abs(S.win.scrollY - p.y) <= 2) { if (S.cur !== p.i) { S.cur = p.i; ui().onSlide(); } else ui().syncOverlay(); return; }
+  S.docPin = null; const i = docIndex(); if (i !== S.cur) { S.cur = i; ui().onSlide(); } else ui().syncOverlay(); }, 60); ui().syncOverlay(); }
 function onFrameLoad() {
   let tries = 0;
   S.units = null; S.view = 'deck';
@@ -174,7 +188,7 @@ function onFrameLoad() {
     tries += 1;
     if (attachDoc() && (deckCandidates(S.doc).length || tries > settle)) {
       clearInterval(t);
-      detectView();
+      detectView(); refreshEditorCss();
       S.win.addEventListener('scroll', onDocScroll, { passive: true });
       const done = S.resolveLoad; S.resolveLoad = null;
       if (S.startSlide) { const k = slides().findIndex((s) => s.id === S.startSlide); if (k >= 0) S.pendingIndex = k; S.startSlide = null; }

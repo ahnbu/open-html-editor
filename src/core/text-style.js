@@ -42,8 +42,16 @@ function mainSize(el) {
   return size || parseFloat(CS(el).fontSize);
 }
 api.mainSize = mainSize;
+// 글자 고치기 중 고른 범위의 크기(계획 _docs/20261110_01 7번). 범위가 없으면 null, 범위 안 크기가 섞였으면 0(크기 칸을 비운다 — 워드·한글과 같다).
+function rangeSize() {
+  if (!hasRange()) return null;
+  const s = S.win.getSelection(), rng = s.getRangeAt(0), c = rng.commonAncestorContainer, root = c.nodeType === 1 ? c : c.parentElement;
+  const sizes = new Set(textsIn(root, rng).map((t) => Math.round(parseFloat(CS(t.parentElement).fontSize) * 10) / 10));
+  return sizes.size === 1 ? [...sizes][0] : (sizes.size ? 0 : null);
+}
+api.rangeSize = rangeSize;
 function setSize(px) {
-  if (hasRange()) { S.textOp = true; withRange({ fontSize: px + 'px' }); return; }
+  if (hasRange()) { S.textOp = true; withRange({ fontSize: px + 'px' }); ui().onSelect(); return; }
   const list = S.sel; if (!list.length) return;
   op(T('op.size'), () => list.forEach((el) => {
     const base = mainSize(el) || px; const ratio = px / base; setStyle(el, 'font-size', px + 'px');

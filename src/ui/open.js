@@ -49,3 +49,27 @@ if(location.hash==='#handoff'){
   try{window.opener.postMessage('ohe-ready','*')}catch(e){/* 보낸 창이 닫혔다 */}
  }
 }
+// 로고 → 첫 화면(계획 _docs/20261110_01 5번). 입력 중 글자는 먼저 확정해 변경으로 센다. 저장 안 한 변경이 있으면 묻는다(취소·저장 실패면 편집 그대로).
+// 첫 화면으로는 주소의 #app을 뗀 같은 주소를 다시 연다 — 편집 상태를 깨끗이 비우는 가장 확실한 길이다. 내 맥 연결 모드·발표 모드에는 첫 화면이 없어 로고가 단추가 아니다.
+function homeOff(){return !!(S.server||S.live)}
+function askHome(){return new Promise((res)=>{const d=$('#dlgHome');d.onclose=()=>res(d.returnValue||'no');d.returnValue='';d.showModal()})}
+async function goHome(){if(homeOff())return;if(S.editing)H.finishText();
+ if(loaded()&&(H.isDirty()||S.commentChanged)){const how=await askHome();if(how==='save'){const r=await H.save();if(!r||r.canceled||r.error)return}else if(how!=='discard')return}
+ S.leaving=true;location.href=location.pathname+location.search}
+$('#bHome').addEventListener('click',goHome);
+function homeState(){const b=$('#bHome');b.disabled=homeOff();b.classList.toggle('off',homeOff())}
+homeState();
+// 바로가기 주소 html.planninghigh.com/#app(계획 _docs/20261110_01 6번): 첫 화면을 건너뛰고 빈 편집기와 열기 안내를 보인다. 파일을 열면(loaded) 보통 편집기가 된다.
+if(location.hash==='#app')document.body.classList.add('app-empty');
+$('#eoOpen').addEventListener('click',()=>$('#openFile').click());
+$('#eoSample').addEventListener('click',()=>{const b=$('#bExample');if(b&&!b.hidden)b.click()});
+if(!window.HE_EXAMPLE)$('#eoSample').hidden=true;
+// 파일 끌기 덮개(계획 _docs/20261110_01 9번): 파일을 끌고 들어오는 동안 화면 전체를 덮고 놓으면 어떻게 되는지 알린다.
+// dragover는 끄는 동안 계속 오므로, 마지막 dragover 뒤 잠깐 조용하면 덮개를 내린다(자식 요소 사이를 지날 때 깜박이지 않는다). 글자·장 끌기(파일 아님)에는 뜨지 않는다.
+// 편집 무대(iframe) 안의 끌기는 본체(input.js)가 onFileDrag로 알려 준다.
+let dcT=0;
+function fileDrag(on){const c=$('#dropCover');clearTimeout(dcT);if(!on){c.hidden=true;return}
+ const sw=loaded();$('#dcTitle').textContent=tt(sw?'drop.switchTitle':'drop.title');$('#dcSub').textContent=tt(sw?'drop.switchSub':'drop.sub');c.hidden=false;dcT=setTimeout(()=>{c.hidden=true},180)}
+const hasFileDrag=(e)=>e.dataTransfer&&[...e.dataTransfer.types].includes('Files');
+addEventListener('dragover',(e)=>{if(hasFileDrag(e))fileDrag(true)});
+addEventListener('drop',()=>fileDrag(false));addEventListener('dragleave',(e)=>{if(e.clientX<=0||e.clientY<=0||e.clientX>=innerWidth||e.clientY>=innerHeight)fileDrag(false)});

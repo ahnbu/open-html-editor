@@ -3,6 +3,9 @@
    움직임 시간은 tokens.css 변수(--dur-*). 움직임 줄이기 설정이면 0이 되고 landing.js가 멈춘 화면을 그린다 */
 .mark{width:28px;height:28px;flex:none}.mark.sm{width:22px;height:22px}
 .loaded #land{display:none}body:not(.loaded)>#title,body:not(.loaded)>#ribbon,body:not(.loaded)>#status{visibility:hidden;overflow:hidden;min-width:0}
+/* 바로가기 주소(#app): 첫 화면을 건너뛰고 빈 편집기 틀을 보인다(계획 _docs/20261110_01 6번) */
+body.app-empty:not(.loaded) #land{display:none}
+body.app-empty:not(.loaded)>#title,body.app-empty:not(.loaded)>#ribbon,body.app-empty:not(.loaded)>#status{visibility:visible;overflow:visible}
 
 /* 팔레트(B 먹색) */
 #land{--or:#FF5B14;--pad:clamp(18px,3.4vw,56px);
@@ -70,7 +73,10 @@
 #land .l-btn.pri svg{width:22px;height:22px;stroke:var(--btnIc);fill:none;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 #land .l-btn.l-sec{background:transparent;color:var(--fg);border:2px solid var(--line)}
 #land .l-btn.l-sec:hover{background:var(--fg);color:var(--bg)}
-#drop.over{outline:3px solid var(--fg);outline-offset:4px}
+/* 끌기 전 신호(계획 _docs/20261110_01 9b): 단추 아래 한 줄. 파일을 끌어다 놓을 수 없는 터치 기기에서는 숨긴다 */
+#land .l-hint{display:flex;align-items:center;gap:8px;margin:14px 0 0;font-size:14px;line-height:1.4;color:var(--fg);opacity:.85;white-space:nowrap}
+#land .l-hint svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:none){#land .l-hint{display:none}}
 #land .l-sub{margin:0;max-width:34em;font-size:clamp(17px,1.5vw,22px);line-height:1.5;color:var(--fg)}
 
 /* ── 편집기 시연 구역 */

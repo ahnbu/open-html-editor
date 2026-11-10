@@ -278,6 +278,7 @@ if (G) { fitWin(); (document.fonts && document.fonts.ready ? document.fonts.read
 else L.classList.remove('l-anim');
 }
 // 끌어다 놓기: 첫 화면 어디에 놓아도 열린다. 편집 중에 놓으면 다른 파일 열기(⑧e)와 같다 — 저장 안 한 변경이 있으면 묻는다
-const D=$('#drop');addEventListener('dragover',(e)=>{e.preventDefault();D.classList.add('over')});addEventListener('dragleave',()=>D.classList.remove('over'));
-addEventListener('drop',async(e)=>{e.preventDefault();D.classList.remove('over');const out=await dropFiles(e.dataTransfer);if(!out.length)return;if(document.body.classList.contains('loaded'))switchTo(out);else openFiles(out)});
+// 끄는 동안의 표시는 화면 전체 덮개(#dropCover, src/ui/open.js — 계획 _docs/20261110_01 9번)가 맡는다. 예전 「HTML 파일 열기」 단추 테두리는 뺐다.
+addEventListener('dragover',(e)=>{e.preventDefault()});
+addEventListener('drop',async(e)=>{e.preventDefault();const out=await dropFiles(e.dataTransfer);if(!out.length)return;if(document.body.classList.contains('loaded'))switchTo(out);else openFiles(out)});
 async function dropFiles(dt){const items=[...dt.items].map((i)=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean);const out=[];const walk=async(en,p)=>{if(en.isFile){const f=await new Promise((r)=>en.file(r));Object.defineProperty(f,'webkitRelativePath',{value:p+f.name});out.push(f)}else{const rd=en.createReader();let b;do{b=await new Promise((r)=>rd.readEntries(r));for(const x of b)await walk(x,p+en.name+'/')}while(b.length)}};if(!items.length)return[...(dt.files||[])];for(const en of items)await walk(en,'');return out}

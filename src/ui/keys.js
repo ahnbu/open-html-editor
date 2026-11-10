@@ -10,4 +10,4 @@ addEventListener('keydown',(e)=>{if((e.ctrlKey||e.metaKey)&&e.code==='KeyO'&&!e.
  // 이때 Esc는 메뉴만 닫는다 — 선택까지 풀면 고른 것이 있어야 켜지는 버튼(순서·맞춤 등)이 꺼져 초점이 사라진다
  const openers=open.map((m)=>document.querySelector('[data-menu="'+m.id+'"]')).filter(Boolean);open.forEach((x)=>x.classList.remove('open'));const back=openers[openers.length-1];if(back)back.focus();e.preventDefault();return}}H.onKey(e)});
 addEventListener('paste',(e)=>{if(e.target.closest&&e.target.closest('input,textarea,dialog,.pop'))return;if(S.doc)H.onPaste(e)});
-addEventListener('beforeunload',(e)=>{if((H.isDirty()||S.commentChanged)&&!(S.live&&window.parent!==window)){e.preventDefault();e.returnValue=''}});
+addEventListener('beforeunload',(e)=>{if(!S.leaving&&(H.isDirty()||S.commentChanged)&&!(S.live&&window.parent!==window)){e.preventDefault();e.returnValue=''}});

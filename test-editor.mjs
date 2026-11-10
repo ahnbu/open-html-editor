@@ -74,7 +74,20 @@ await test('표 칸 고치기·행 추가·열 삭제', async () => { await dbl(
 await test('표 행·열 추가', async () => { const c = await at('td'); await p.mouse.click(c.x, c.y); await p.waitForTimeout(60); await more('#mTbl'); await p.click('#bColAdd'); await p.waitForTimeout(60); const h = await saved(); return (h.match(/<td/g) || []).length === 6; });
 await test('요소 삭제와 되돌리기', async () => { await clickEl('.flow'); await p.click('#bDel'); const a = await saved(); await p.click('#bUndo'); await p.waitForTimeout(80); const c = await saved(); return !a.includes('흐름 글자') && c.includes('흐름 글자'); });
 await test('숨은 단계 요소를 고를 수 있음', async () => { const c = await at('[data-step]'); await p.mouse.click(c.x, c.y); await p.waitForTimeout(60); return p.evaluate(() => window.HE.S.sel[0]?.hasAttribute('data-step')); });
-await test('찾아 바꾸기', async () => { await p.evaluate(() => { document.querySelector('#fa').value = '둘째'; document.querySelector('#fb').value = '두번째'; document.querySelector('#dlg').showModal(); document.querySelector('#dlg button.go').click(); }); await p.waitForTimeout(100); const h = await saved(); return h.includes('두번째 장') && h.includes('두번째 상자'); });
+// 찾기 막대(계획 _docs/20261110_01 3번): 덱에서 다른 장에 있는 결과로 넘어가고, 한 곳·모두 바꾸기, 저장본에 칠하기 흔적 없음. 열기는 문서 안 Ctrl+F(onKey)로
+await test('찾기 막대: 덱 다른 장 이동·한 곳·모두 바꾸기', async () => {
+  await p.keyboard.press('Escape'); await p.evaluate(() => window.HE.goTo(0)); await p.waitForTimeout(120);
+  await p.evaluate(() => { const w = window.HE.S.win; w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'f', code: 'KeyF', ctrlKey: true, bubbles: true, cancelable: true })); });
+  await p.waitForTimeout(80); const opened = await p.evaluate(() => !document.querySelector('#findBar').hidden && document.activeElement.id === 'fa');
+  await p.fill('#fa', '둘째'); await p.waitForTimeout(400);
+  const c1 = await p.textContent('#fCount'), slide = await p.evaluate(() => window.HE.S.cur), hl = await p.evaluate(() => window.HE.S.win.CSS.highlights.has('he-find-cur'));
+  await p.fill('#fb', '두번째'); await p.click('#fRep'); await p.waitForTimeout(250); const c2 = await p.textContent('#fCount');
+  await p.click('#bUndo'); await p.waitForTimeout(250); const c3 = await p.textContent('#fCount');
+  await p.click('#fRepAll'); await p.waitForTimeout(250); const c4 = await p.textContent('#fCount'), off = await p.evaluate(() => document.querySelector('#fRepAll').disabled);
+  const h = await saved(); await p.click('#fClose'); await p.evaluate(() => window.HE.goTo(0)); await p.waitForTimeout(150); // 뒤 시험은 첫 장 기준
+  const r = opened && c1 === '1/2' && slide === 1 && hl && c2 === '1/1' && c3 === '1/2' && off && h.includes('두번째 장') && h.includes('두번째 상자') && !h.includes('highlight') && await p.evaluate(() => document.querySelector('#findBar').hidden);
+  if (!r) console.log('  찾기 막대 진단', { opened, c1, slide, hl, c2, c3, c4, off }); return r;
+});
 await test('한글 입력 상태 단축키', async () => { const u = await p.evaluate(() => window.HE.S.undo.length); await p.locator('#stage').focus(); await p.evaluate(() => { const w = window.HE.S.win; w.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ㅋ', code: 'KeyZ', ctrlKey: true, bubbles: true, cancelable: true })); }); await p.waitForTimeout(80); const v = await p.evaluate(() => window.HE.S.undo.length); return v === u - 1; });
 await test('Delete: 바깥 창에 포커스가 있어도 고른 개체 삭제', async () => { await clickEl('img'); await p.locator('#status').click(); await p.keyboard.press('Delete'); await p.waitForTimeout(80); const gone = await p.evaluate(() => !window.HE.S.doc.querySelector('img')); await p.evaluate(() => window.HE.undo()); await p.waitForTimeout(80); return gone && await p.evaluate(() => !!window.HE.S.doc.querySelector('img')); });
 await test('맞춤: 오른쪽·중간·아래쪽', async () => {
@@ -528,6 +541,8 @@ p{position:absolute;left:60px;margin:0;font-size:30px;font-weight:400}#p1{top:40
   await test('T8c 영어 화면 조절기 문구', async () => { const c = await b.newContext({ viewport: { width: 1280, height: 768 }, acceptDownloads: true, locale: 'en-US' }); const pg = await open3(c, EDITOR + '?lang=en'); const r = await pg.evaluate(() => ({ out: document.querySelector('#zoomOut').getAttribute('aria-label'), inn: document.querySelector('#zoomIn').getAttribute('aria-label'), fit: document.querySelector('#zoomFit').textContent, tip: document.querySelector('#zoomFit').title, grp: document.querySelector('#zoomBox').getAttribute('aria-label') })); await pg.screenshot({ path: join(EVD, '구현_상태줄_en_1280.png') }); const bc = await barCheck(pg); await c.close(); console.log('  T8c', JSON.stringify({ r, bc })); return r.out === 'Zoom out' && r.inn === 'Zoom in' && r.fit === 'Fit' && r.tip === 'Fit to screen' && r.grp === 'Zoom controls' && bc.inView && !bc.overR; });
 }
 
+// 사용성 9건(계획 _docs/20261110_01) — 구역 이동·찾기 막대·로고·#app·글자 크기·문서 배율·끌기 덮개, 화면 검수 캡처
+{ const { usabilityTests } = await import('./test-usability.mjs'); await usabilityTests({ b, EDITOR, work, test, here: HERE, deckPath, results }); }
 await b.close();
 const failed =Object.entries(results).filter(([k, v]) => v === false).map(([k]) => k);
 if (outJson) writeFileSync(outJson, JSON.stringify({ results, failed }, null, 1));

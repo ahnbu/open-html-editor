@@ -43,6 +43,9 @@ try {
 } catch (e) { console.log('offline step failed:', e.message.slice(0, 160)); }
 if (!controlled || !offlineOk) console.log('  controlled:', controlled, 'saved edit:', offlineOk, (saved.match(/<h1>[^<]*/) || [''])[0]);
 t('offline: site reopens without network, deck edited and saved', controlled && offlineOk);
+// shortcut address #app (plan _docs/20261110_01 item 6): opens the empty editor straight away, also offline
+{ let appOk = false; try { const q = await ctx.newPage(); await q.goto(URL0 + '#app'); await q.waitForTimeout(500); appOk = await q.evaluate(() => getComputedStyle(document.querySelector('#land')).display === 'none' && getComputedStyle(document.querySelector('#emptyOpen')).display !== 'none'); await q.close(); } catch (e) { console.log('offline #app failed:', e.message.slice(0, 160)); }
+  t('offline: #app opens the empty editor without the landing page', appOk); }
 // update notice: page from cache (old build), then a new build is deployed and the network comes back
 const oldBuild = await p.evaluate(() => window.HE_BUILD);
 files = { '/': Buffer.from(files['/'].toString().replace(`window.HE_BUILD='${oldBuild}'`, "window.HE_BUILD='newbuild0001'")), '/sw.js': Buffer.from(files['/sw.js'].toString().replace(/VERSION = '[^']+'/, "VERSION = 'newbuild0001'")) };
