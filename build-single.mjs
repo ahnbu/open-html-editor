@@ -16,13 +16,13 @@ export const I18N = ['src/i18n/ko.json', 'src/i18n/en.json'];
 export const BOOT = ['src/i18n/i18n.js'];
 export const CORE = [
   'src/core/state.js', 'src/save/source.js', 'src/core/assets.js', 'src/core/open.js', 'src/core/view-mode.js', 'src/core/slides.js',
-  'src/core/select.js', 'src/core/history.js', 'src/save/handoff.js', 'src/save/save.js', 'src/save/comment-block.js', 'src/core/comments.js',
+  'src/core/select.js', 'src/core/history.js', 'src/save/handoff.js', 'src/save/save.js', 'src/save/comment-block.js', 'src/save/draft.js', 'src/core/comments.js',
   'src/core/slide-ops.js', 'src/core/text-style.js', 'src/core/objects.js', 'src/core/table.js', 'src/core/text-edit.js',
   'src/core/input.js', 'src/core/present.js', 'src/core/api.js',
 ];
 export const UI = [
   'src/ui/ribbon.js', 'src/ui/thumbs.js', 'src/ui/pdf.js', 'src/ui/status.js', 'src/ui/overlay.js', 'src/ui/comments.js', 'src/ui/hooks.js',
-  'src/ui/buttons.js', 'src/ui/notes.js', 'src/ui/presenter.js', 'src/ui/keys.js', 'src/ui/grid.js', 'src/ui/open.js',
+  'src/ui/buttons.js', 'src/ui/notes.js', 'src/ui/presenter.js', 'src/ui/keys.js', 'src/ui/grid.js', 'src/ui/restore.js', 'src/ui/open.js',
   'src/ui/view-mode.js', 'src/landing/landing.js', 'src/ui/modes.js', 'src/ui/offline.js',
 ];
 // Third-party scripts kept as-is (license header intact), each in its own <script> before the UI scope. GSAP drives the landing motion.

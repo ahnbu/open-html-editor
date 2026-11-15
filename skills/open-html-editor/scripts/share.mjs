@@ -7,7 +7,7 @@
 //     Default output: <name>_share.html next to the input. Running it again replaces the old button (never two).
 // Keep in sync with src/save/handoff.js (block markup, script, CSS) and src/i18n/*.json (handoff.badge*).
 // tools/check-skill-share.mjs compares this output with the editor's own share save.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,7 +43,9 @@ export function withHandoff(html, lang = 'ko') {
   return /<\/body>/i.test(text) ? text.replace(/<\/body>(?![\s\S]*<\/body>)/i, () => block + '</body>') : text + block;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+// Run as a command (not imported). Compare real paths: skills are often installed as a symlink or junction.
+const real = (p) => { try { return realpathSync(p); } catch (e) { return resolve(p); } };
+if (process.argv[1] && real(fileURLToPath(import.meta.url)) === real(process.argv[1])) {
   const args = process.argv.slice(2);
   const file = args.find((a, i) => !a.startsWith('--') && !['--out', '--lang'].includes(args[i - 1]));
   if (!file) { console.log('usage: share.mjs <file.html> [--out <path>] [--lang ko|en]'); process.exit(2); }

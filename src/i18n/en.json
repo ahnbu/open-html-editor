@@ -289,6 +289,7 @@
  "switch.discard": "Open Without Saving",
  "switch.saveOpen": "Save and Open",
  "msg.openedHandoff": "Loaded shared document",
+ "msg.restoredDraft": "Reopened your edits from before the reload (undo history was cleared)",
  "msg.handoffLostImages": "Could not load {n} image(s)",
  "msg.savedHandoffSuffix": " (with recipient edit button)",
  "title.bar": "Editing tools",

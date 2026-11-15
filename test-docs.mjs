@@ -381,6 +381,24 @@ async function roundTrip(file, sel) {
   t('PDF section document: page width = section width, every section in the print document', pg.kind === 'page' && ip.pages >= 1 && ip.boxes.every(([w]) => Math.abs(w - pg.w * 0.75) < 1) && lastIn);
   await p.close();
 }
+// 새로고침해도 편집 이어 하기(src/save/draft.js): 같은 탭 새로고침은 고친 문서를 다시 열고, 첫 화면으로 나가면 지운다
+{
+  const p = await open(files.resume);
+  await p.evaluate(() => { const H = window.HE, S = H.S; const el = [...S.doc.querySelectorAll('[' + H.ID + ']')].find((e) => /^(P|LI|H1|H2|H3|TD)$/.test(e.tagName) && e.textContent.trim().length > 3); H.startText(el); const r = S.doc.createRange(); r.selectNodeContents(S.editing); r.collapse(false); const sel = S.win.getSelection(); sel.removeAllRanges(); sel.addRange(r); });
+  await p.keyboard.type('RELOADKEEP'); await p.evaluate(() => window.HE.finishText()); await p.waitForTimeout(1200);
+  const before = await p.evaluate(() => ({ name: window.HE.S.name, dirty: window.HE.isDirty() }));
+  p.on('dialog', (d) => d.accept());
+  await p.reload(); await p.waitForFunction(() => document.body.classList.contains('loaded') && window.HE.S.doc, null, { timeout: 15000 }).catch(() => {}); await p.waitForTimeout(400);
+  const after = await p.evaluate(() => ({ loaded: document.body.classList.contains('loaded'), name: window.HE.S.name, kept: !!window.HE.S.doc && window.HE.S.doc.body.textContent.includes('RELOADKEEP'), dirty: window.HE.isDirty(), msg: document.querySelector('#msg').textContent === window.HE_TT('msg.restoredDraft') }));
+  t('reload keeps the edited document open (same name, edit kept, still unsaved, message)', before.dirty && after.loaded && after.name === before.name && after.kept && after.dirty && after.msg);
+  await p.click('#bHome'); await p.waitForSelector('#dlgHome[open]', { timeout: 3000 }).catch(() => {});
+  await Promise.all([p.waitForNavigation().catch(() => {}), p.click('#dlgHome button[value="discard"]')]); await p.waitForTimeout(500);
+  await p.reload(); await p.waitForTimeout(1200);
+  t('after going home, reload shows the start screen (the kept draft is cleared)', await p.evaluate(() => !document.body.classList.contains('loaded')));
+  const other = await ctx.newPage(); await other.goto(EDITOR); await other.waitForTimeout(1200);
+  t('a new tab never opens another tab\'s draft', await other.evaluate(() => !document.body.classList.contains('loaded')));
+  await other.close(); await p.close();
+}
 await b.close();
 const n = Object.values(results).filter(Boolean).length, all = Object.keys(results).length;
 console.log(`total ${n}/${all} pass${pageErrors ? `, page errors ${pageErrors}` : ''}`);

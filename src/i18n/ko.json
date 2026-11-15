@@ -289,6 +289,7 @@
  "switch.discard": "저장 안 하고 열기",
  "switch.saveOpen": "저장하고 열기",
  "msg.openedHandoff": "받은 문서를 불러왔습니다",
+ "msg.restoredDraft": "새로고침 전 편집을 그대로 이어서 열었습니다 (실행 취소 기록은 비워졌습니다)",
  "msg.handoffLostImages": "이미지 {n}개를 불러오지 못했습니다",
  "msg.savedHandoffSuffix": " (받는 분 버튼 포함)",
  "title.bar": "편집 도구",

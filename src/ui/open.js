@@ -55,7 +55,8 @@ function homeOff(){return !!(S.server||S.live)}
 function askHome(){return new Promise((res)=>{const d=$('#dlgHome');d.onclose=()=>res(d.returnValue||'no');d.returnValue='';d.showModal()})}
 async function goHome(){if(homeOff())return;if(S.editing)H.finishText();
  if(loaded()&&(H.isDirty()||S.commentChanged)){const how=await askHome();if(how==='save'){const r=await H.save();if(!r||r.canceled||r.error)return}else if(how!=='discard')return}
- S.leaving=true;location.href=location.pathname+location.search}
+ // 첫 화면으로 나가면 이 탭의 이어 하기 기록을 지운다 — 안 그러면 첫 화면에서 새로고침할 때 편집기가 다시 열린다
+ S.leaving=true;await H.draftClear();location.href=location.pathname+location.search}
 $('#bHome').addEventListener('click',goHome);
 function homeState(){const b=$('#bHome');b.disabled=homeOff();b.classList.toggle('off',homeOff())}
 homeState();
