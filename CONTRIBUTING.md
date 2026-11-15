@@ -1,5 +1,7 @@
 # Contributing to Openditor
 
+> **Note:** This repository is an automatically published mirror maintained from our upstream development repository. Issues and Pull Requests are warmly welcomed directly here; accepted changes are integrated upstream and synced back on the next automated publish. Please note that direct pushes to `main` are disabled.
+
 Thank you for your interest in contributing to Openditor!
 
 ## Core Philosophy
