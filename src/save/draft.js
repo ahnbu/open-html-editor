@@ -32,6 +32,8 @@ async function draftWrite() {
   const files = [...S.files].map(([p, v]) => [p, v && v.file ? v.file : v]).filter(([, f]) => f instanceof Blob);
   const rec = { v: 1, time: Date.now(), name: S.name, saveName: S.saveName || '', dirty: isDirty() || !!S.commentChanged, text: withComments(exportText()), files };
   await draftTx('readwrite', (st) => st.put(rec, id));
+  // 새로고침 때 editor.html 머리가 IndexedDB를 기다리지 않고 첫 화면을 건너뛸지 정하는 표시
+  try { sessionStorage.setItem('he-draft', '1'); } catch (e) { /* 표시를 못 남기면 예전처럼 첫 화면이 잠깐 보인다 */ }
   // 오래된 다른 탭의 기록은 지운다(탭을 닫으면 sessionStorage가 사라져 다시 쓰이지 않는다)
   draftTx('readwrite', (st) => { const c = st.openCursor(); c.onsuccess = () => { const cur = c.result; if (!cur) return; if (cur.key !== id && Date.now() - (cur.value && cur.value.time || 0) > DRAFT_KEEP_MS) cur.delete(); cur.continue(); }; return null; }).catch(() => {});
 }
@@ -39,7 +41,8 @@ api.draftSoon = () => { if (draftOff || !draftable()) return; clearTimeout(draft
 api.draftNow = () => { clearTimeout(draftTimer); if (draftOff) return Promise.resolve(); return draftWrite().catch(() => {}); };
 // 첫 화면으로 나갈 때 — 새로고침이 다시 편집기를 열지 않게 지운다
 api.draftClear = async () => {
-  draftOff = true; clearTimeout(draftTimer); const id = draftTab(); if (!id) return;
+  draftOff = true; clearTimeout(draftTimer); try { sessionStorage.removeItem('he-draft'); } catch (e) { /* 없음 */ }
+  const id = draftTab(); if (!id) return;
   try { await draftTx('readwrite', (st) => st.delete(id)); } catch (e) { /* 저장소를 못 쓰면 지울 것도 없다 */ }
 };
 api.draftRead = async () => {

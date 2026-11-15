@@ -45,9 +45,11 @@ if(location.hash==='#handoff'){
  if(window.opener&&H.handoffSupported){
   let got=false;
   addEventListener('message',async(e)=>{const d=e.data;if(got||e.source!==window.opener||!d||d.t!=='ohe-doc'||typeof d.gz!=='string'||!d.gz)return;got=true;
-   try{const r=await H.receiveHandoff(d);if(r.lost)msg(tt('msg.handoffLostImages',{n:r.lost}));else if(!S.missing.size&&S.kind!=='bundle')msg(tt('msg.openedHandoff'))}catch(err){got=false;console.warn('handoff',err)}});
+   try{const r=await H.receiveHandoff(d);if(r.lost)msg(tt('msg.handoffLostImages',{n:r.lost}));else if(!S.missing.size&&S.kind!=='bundle')msg(tt('msg.openedHandoff'))}catch(err){got=false;console.warn('handoff',err);if(!loaded())bootDone()}});
   try{window.opener.postMessage('ohe-ready','*')}catch(e){/* 보낸 창이 닫혔다 */}
- }
+  // 보낸 창이 문서를 주지 않으면(닫혔거나 다른 페이지) 첫 화면을 되돌린다
+  setTimeout(()=>{if(!got&&!loaded())bootDone()},8000);
+ }else bootDone();
 }
 // 로고 → 첫 화면(계획 _docs/20261110_01 5번). 입력 중 글자는 먼저 확정해 변경으로 센다. 저장 안 한 변경이 있으면 묻는다(취소·저장 실패면 편집 그대로).
 // 첫 화면으로는 주소의 #app을 뗀 같은 주소를 다시 연다 — 편집 상태를 깨끗이 비우는 가장 확실한 길이다. 내 맥 연결 모드·발표 모드에는 첫 화면이 없어 로고가 단추가 아니다.

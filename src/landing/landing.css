@@ -6,6 +6,9 @@
 /* 바로가기 주소(#app): 첫 화면을 건너뛰고 빈 편집기 틀을 보인다(계획 _docs/20261110_01 6번) */
 body.app-empty:not(.loaded) #land{display:none}
 body.app-empty:not(.loaded)>#title,body.app-empty:not(.loaded)>#ribbon,body.app-empty:not(.loaded)>#status{visibility:visible;overflow:visible}
+/* 문서를 받거나 이어 여는 중(html.he-boot, editor.html 머리에서 판정): 첫 화면을 그리지 않고 편집기 틀부터 보인다 */
+html.he-boot body:not(.loaded) #land{display:none}
+html.he-boot body:not(.loaded)>#title,html.he-boot body:not(.loaded)>#ribbon,html.he-boot body:not(.loaded)>#status{visibility:visible;overflow:visible}
 
 /* 팔레트(B 먹색) */
 #land{--or:#FF5B14;--pad:clamp(18px,3.4vw,56px);
