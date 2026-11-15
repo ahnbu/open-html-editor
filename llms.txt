@@ -46,7 +46,8 @@
 - `src/ui/`: UI ribbons, menus, modal dialogs, presenter view.
 - `src/landing/`: Interactive landing page with live mockup animations.
 - `src/i18n/`: `ko.json` and `en.json` translation dictionaries. All UI text MUST be placed here.
-- `skills/open-html-editor/`: Optional companion skill enabling local AI tools (e.g. Claude Code) to read comments and apply edits directly.
+- `skills/open-html-editor/`: Optional companion skill enabling local AI tools (e.g. Claude Code) to make review copies with the "Edit this document" button (`scripts/share.mjs`) and to read comments and apply edits directly (to the source when the HTML is a build output).
+- `tools/check-skill-share.mjs`: Verifies the skill's share output matches the editor's own "Save for sharing".
 - `build-single.mjs`: Node.js script that compiles all sources into `public/index.html`.
 - `test-*.mjs`: Automated Playwright test suites covering editing, doc layouts, security, and PWA caching.
 

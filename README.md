@@ -49,7 +49,7 @@ While you can fix small typos and layout shifts directly, larger structural rewr
 Click **Copy for AI** in the editor toolbar. Openditor packages your entire HTML document (or comments if >200KB) and numbered comment pins into a structured prompt. Paste it directly into Claude, ChatGPT, or Gemini.
 
 ### 2. Optional: Install the Local AI Skill
-If you use Claude Code or local AI agents, install our lightweight companion skill (`skills/open-html-editor/`). When you ask *"Apply the comments from the file I just saved"*, your AI agent reads the embedded comments, creates an automatic backup in `_편집백업/`, modifies the file directly, and removes the comment block. No server required.
+If you use Claude Code or local AI agents, install our lightweight companion skill (`skills/open-html-editor/`). When you ask *"Apply the comments from the file I just saved"*, your AI agent reads the embedded comments, creates an automatic backup in `_편집백업/`, modifies the file directly, and removes the comment block. If the HTML is built from another source (Markdown, a template), it edits the source and rebuilds instead, so the next build keeps the change. Ask *"Make this HTML reviewable in Openditor"* and it writes a copy with the floating "✎ Edit this document" button, so anyone can open it in Openditor with one click. No server required.
 
 **Install options:**
 - **Via npx skills:**
