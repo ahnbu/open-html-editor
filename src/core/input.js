@@ -39,7 +39,7 @@ function textByBox(x, y) {
   let best = null, area = Infinity;
   for (const e of S.doc.body.querySelectorAll('*')) {
     if (isSlideRoot(e) || /^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|svg|SVG|CANVAS|VIDEO|IMG)$/.test(e.tagName) || e.closest('svg')) continue;
-    const r = e.getBoundingClientRect(); if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+    const r = visRect(e); if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
     const a = r.width * r.height; if (a >= area || !e.textContent.trim()) continue;
     if (shown(e)) { area = a; best = e; }
   }

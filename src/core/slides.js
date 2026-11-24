@@ -41,4 +41,22 @@ async function navTo(i, ds, list) {
   }
 }
 const sectionOf = (el) => { const l = slides(); return l.find((s) => s.contains(el)) || null; };
+// 요소의 「보이는」 위치. 쪽 나누기 문서(Paged.js 스냅숏)는 쪽 안을 다단으로 채워, 글자 폭이 조금만 달라져도(배율·운영체제)
+// 문단 끝줄이 쪽 밖 보이지 않는 다음 단으로 밀린다. 이때 getBoundingClientRect는 두 조각을 함께 감싸 선택 상자가 쪽 밖까지 커진다.
+// 조각이 둘 이상이면 보이는 범위 안 조각만 합친다 — 범위는 가장 가까운 다단 칸(넘친 단은 그 칸 밖에 놓인다), 없으면 넘침을 감추는 조상, 없으면 그 장·쪽. 조각이 하나면 그대로다.
+function visRect(el) {
+  const r = el.getBoundingClientRect(); if (!el.getClientRects) return r;
+  const parts = [...el.getClientRects()]; if (parts.length < 2) return r;
+  const unit = sectionOf(el); let col = null, hid = null;
+  for (let a = el.parentElement; a && a !== S.doc.body && a !== S.doc.documentElement; a = a.parentElement) {
+    const cs = CS(a); if (cs.columnWidth !== 'auto' || cs.columnCount !== 'auto') { col = a; break; }
+    if (!hid && (cs.overflowX !== 'visible' || cs.overflowY !== 'visible')) hid = a; if (a === unit) break;
+  }
+  const clip = (col || hid || unit || S.doc.body).getBoundingClientRect();
+  const box = parts.map((q) => ({ l: Math.max(q.left, clip.left), t: Math.max(q.top, clip.top), r: Math.min(q.right, clip.right), b: Math.min(q.bottom, clip.bottom) })).filter((q) => q.r - q.l > 0.5 && q.b - q.t > 0.5);
+  if (!box.length) return r;
+  const l = Math.min(...box.map((q) => q.l)), t = Math.min(...box.map((q) => q.t)), rr = Math.max(...box.map((q) => q.r)), b = Math.max(...box.map((q) => q.b));
+  return { left: l, top: t, right: rr, bottom: b, width: rr - l, height: b - t, x: l, y: t };
+}
+api.visRect = visRect;
 const scaleOf = (el) => { const s = sectionOf(el) || S.doc.body; const r = s.getBoundingClientRect(); return (r.width / (s.offsetWidth || r.width)) || 1; };

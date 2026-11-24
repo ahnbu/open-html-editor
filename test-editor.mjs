@@ -541,6 +541,21 @@ p{position:absolute;left:60px;margin:0;font-size:30px;font-weight:400}#p1{top:40
   await test('T8c 영어 화면 조절기 문구', async () => { const c = await b.newContext({ viewport: { width: 1280, height: 768 }, acceptDownloads: true, locale: 'en-US' }); const pg = await open3(c, EDITOR + '?lang=en'); const r = await pg.evaluate(() => ({ out: document.querySelector('#zoomOut').getAttribute('aria-label'), inn: document.querySelector('#zoomIn').getAttribute('aria-label'), fit: document.querySelector('#zoomFit').textContent, tip: document.querySelector('#zoomFit').title, grp: document.querySelector('#zoomBox').getAttribute('aria-label') })); await pg.screenshot({ path: join(EVD, '구현_상태줄_en_1280.png') }); const bc = await barCheck(pg); await c.close(); console.log('  T8c', JSON.stringify({ r, bc })); return r.out === 'Zoom out' && r.inn === 'Zoom in' && r.fit === 'Fit' && r.tip === 'Fit to screen' && r.grp === 'Zoom controls' && bc.inView && !bc.overR; });
 }
 
+// 쪽 나누기 문서(Paged.js 스냅숏)의 쪽 안 다단: 문단 끝줄이 보이지 않는 옆 단으로 밀려도 선택 상자는 그 쪽 안 보이는 조각만 감싼다(2026-11-24 윈도우 50% 실례)
+await test('다단으로 조각난 문단: 선택 상자가 쪽 안 보이는 조각에만 붙음', async () => {
+  const pageCss = '.pg{width:794px;height:1123px;position:relative;background:#fff}.sh{overflow:hidden;width:794px;height:1123px}.pc{position:absolute;left:76px;top:113px;width:643px;height:120px;columns:643px;column-gap:0;column-fill:auto;font-size:16px;line-height:24px}';
+  const para = '<p id="ov" style="margin:0">' + '쪽 끝에서 넘치는 긴 문단입니다. '.repeat(40) + '</p>';
+  const html = `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#eee}${pageCss}</style></head><body><div class="pg"><div class="sh"><div class="pc">${para}</div></div></div><div class="pg"><div class="sh"><div class="pc"><p>둘째 쪽</p></div></div></div></body></html>`;
+  const f = join(work, 'paged.html'); writeFileSync(f, html);
+  const c = await b.newContext({ viewport: { width: 1280, height: 900 } }); const pg = await c.newPage();
+  await pg.goto(EDITOR); await pg.setInputFiles('#openFile', f); await pg.waitForFunction(() => window.HE.S.doc && window.HE.slides().length > 1); await pg.waitForTimeout(400);
+  const pt = await pg.evaluate(() => { const d = window.HE.S.doc, e = d.getElementById('ov'), q = e.getClientRects()[0], fr = document.querySelector('#stage').getBoundingClientRect(); return { n: e.getClientRects().length, x: fr.left + q.left + 30, y: fr.top + q.top + 10 }; });
+  await pg.mouse.click(pt.x, pt.y); await pg.waitForTimeout(200);
+  const r = await pg.evaluate(() => { const d = window.HE.S.doc, fr = document.querySelector('#stage').getBoundingClientRect(), q = d.getElementById('ov').getClientRects()[0], pc = d.querySelector('.pc').getBoundingClientRect(), bx = document.querySelector('#overlay .box').getBoundingClientRect(); return { sel: window.HE.S.sel[0] && window.HE.S.sel[0].id, dw: bx.width - q.width, dl: bx.left - (fr.left + q.left), inPage: bx.right <= fr.left + pc.right + 1 && bx.bottom <= fr.top + pc.bottom + 1 }; });
+  await c.close(); console.log('  조각', pt.n, JSON.stringify(r));
+  return pt.n > 1 && r.sel === 'ov' && Math.abs(r.dw) <= 2 && Math.abs(r.dl) <= 2 && r.inPage;
+});
+
 // 사용성 9건(계획 _docs/20261110_01) — 구역 이동·찾기 막대·로고·#app·글자 크기·문서 배율·끌기 덮개, 화면 검수 캡처
 { const { usabilityTests } = await import('./test-usability.mjs'); await usabilityTests({ b, EDITOR, work, test, here: HERE, deckPath, results }); }
 await b.close();

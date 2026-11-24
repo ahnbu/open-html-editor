@@ -28,7 +28,7 @@ function zOrder(front) {
 }
 // 파워포인트와 같은 여섯 가지 맞춤. 가로: left·center·right, 세로: top·middle·bottom
 function alignMany(how) {
-  if (S.sel.length < 2) return; const rs = S.sel.map((e) => e.getBoundingClientRect()); const s = scaleOf(S.sel[0]);
+  if (S.sel.length < 2) return; const rs = S.sel.map((e) => visRect(e)); const s = scaleOf(S.sel[0]);
   const L = Math.min(...rs.map((r) => r.left)), TOP = Math.min(...rs.map((r) => r.top)), R = Math.max(...rs.map((r) => r.right)), B = Math.max(...rs.map((r) => r.bottom));
   const to = { left: (r) => [L - r.left, 0], center: (r) => [(L + R) / 2 - (r.left + r.right) / 2, 0], right: (r) => [R - r.right, 0], top: (r) => [0, TOP - r.top], middle: (r) => [0, (TOP + B) / 2 - (r.top + r.bottom) / 2], bottom: (r) => [0, B - r.bottom] }[how];
   if (!to) return;
