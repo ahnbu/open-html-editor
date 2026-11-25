@@ -79,6 +79,89 @@ await test('범위 선택: 빈 곳 끌기·완전 포함·Shift 더하기·빈 �
   const e = await sp(0.97, 0.05); await p.mouse.click(e.x, e.y); await p.waitForTimeout(80); const none = await p.evaluate(() => window.HE.S.sel.length);
   return shown && one === 'box,t' && two === 'IMG,box,t' && none === 0;
 });
+// 범위 선택 후속(계획 _docs/20261125_01): 고른 묶음을 눌러 끌면 묶음 그대로 옮기고, 움직이지 않고 누르면 좁히거나 안쪽으로 내려간다.
+// 무대를 누르면 바깥 입력칸 커서가 풀려 Delete·Ctrl+Z가 편집기로 간다. 좌표는 모두 요소의 실제 자리로 잡는다(CI 글꼴 폭 차이, 84edc02).
+{
+  const stage = () => p.evaluate(() => { const f = document.querySelector('#stage').getBoundingClientRect(); return { x: f.left, y: f.top }; });
+  const rectOf = (sel) => p.evaluate((sel) => { const r = window.HE.S.doc.querySelector(sel).getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom }; }, sel);
+  const marquee = async (sels, pad = 8) => { const f = await stage(); const rs = []; for (const s of sels) rs.push(await rectOf(s));
+    const a = { x: f.x + Math.min(...rs.map((r) => r.l)) - pad, y: f.y + Math.min(...rs.map((r) => r.t)) - pad }, z = { x: f.x + Math.max(...rs.map((r) => r.r)) + pad, y: f.y + Math.max(...rs.map((r) => r.b)) + pad };
+    await p.mouse.move(a.x, a.y); await p.mouse.down(); await p.mouse.move((a.x + z.x) / 2, (a.y + z.y) / 2, { steps: 4 }); await p.mouse.move(z.x, z.y, { steps: 4 }); await p.mouse.up(); await p.waitForTimeout(80); };
+  const selNames = () => p.evaluate(() => window.HE.S.sel.map((e) => e.className || e.tagName).sort().join(','));
+  const dragAt = async (c, dx, dy) => { await p.mouse.move(c.x, c.y); await p.mouse.down(); await p.mouse.move(c.x + 5, c.y + 1, { steps: 2 }); await p.mouse.move(c.x + dx, c.y + dy, { steps: 6 }); await p.mouse.up(); await p.waitForTimeout(100); };
+  const undoKey = async () => { await p.keyboard.press('ControlOrMeta+z'); await p.waitForTimeout(120); };
+  const moved = (a, b) => ({ dx: Math.round(b.l - a.l), dy: Math.round(b.t - a.t) });
+  const clear = async () => { await p.keyboard.press('Escape'); await p.evaluate(() => window.HE.setSel([])); await p.waitForTimeout(60); };
+  await test('범위 선택 후속 T1: 묶음의 안쪽 글자를 눌러 끌면 둘 다 옮겨지고 Ctrl+Z로 원위치', async () => {
+    await clear(); await marquee(['h1.t', '.box']); const before = await selNames();
+    const h0 = await rectOf('h1.t'), b0 = await rectOf('.box'); await dragAt(await at('h1.t .em'), 40, 20);
+    const h1 = await rectOf('h1.t'), b1 = await rectOf('.box'), mh = moved(h0, h1), mb = moved(b0, b1), kept = await selNames();
+    await undoKey(); const back = moved(h0, await rectOf('h1.t')), back2 = moved(b0, await rectOf('.box'));
+    const r = before === 'box,t' && mh.dx > 20 && mh.dx === mb.dx && mh.dy === mb.dy && kept === 'box,t' && back.dx === 0 && back.dy === 0 && back2.dx === 0 && back2.dy === 0;
+    if (!r) console.log('  T1 진단', { before, mh, mb, kept, back, back2 }); return r;
+  });
+  await test('범위 선택 후속 T2: 표를 범위 선택하고 칸을 눌러 끌면 표가 옮겨지고 Ctrl+Z로 원위치', async () => {
+    await clear(); await marquee(['table']); const before = await selNames(); const t0 = await rectOf('table');
+    await dragAt(await at('td'), 40, 20); const t1 = await rectOf('table'), m = moved(t0, t1), kept = await selNames();
+    await undoKey(); const back = moved(t0, await rectOf('table'));
+    const r = before === 'TABLE' && m.dx > 20 && kept === 'TABLE' && back.dx === 0 && back.dy === 0;
+    if (!r) console.log('  T2 진단', { before, m, kept, back }); return r;
+  });
+  await test('범위 선택 후속 T3: 둘 고른 뒤 하나를 움직이지 않고 누르면 그 하나로 좁혀짐', async () => {
+    await clear(); await marquee(['h1.t', '.box']); const before = await selNames(); await clickEl('.box'); await p.waitForTimeout(450); const after = await selNames();
+    return before === 'box,t' && after === 'box';
+  });
+  await test('범위 선택 후속 T5: 고른 요소 안의 빈 틈을 눌러 끌어도 선택 유지·이동', async () => {
+    await clear();
+    await p.evaluate(() => { const d = window.HE.S.doc, g = d.createElement('div'); g.id = 'gapT5'; g.style.cssText = 'position:absolute;left:600px;top:420px;width:300px;height:100px';
+      g.innerHTML = '<i style="position:absolute;left:0;top:0;width:60px;height:40px;background:#fcc;display:block"></i><i style="position:absolute;right:0;bottom:0;width:60px;height:40px;background:#cfc;display:block"></i>'; d.querySelector('section#a').appendChild(g); window.HE.setSel([g]); });
+    await p.waitForTimeout(80); const g0 = await rectOf('#gapT5'), f = await stage(), c = { x: f.x + (g0.l + g0.r) / 2, y: f.y + (g0.t + g0.b) / 2 };
+    const gap = await p.evaluate(([x, y]) => !window.HE.S.doc.elementsFromPoint(x, y).some((n) => n.tagName === 'I'), [(g0.l + g0.r) / 2, (g0.t + g0.b) / 2]);
+    await dragAt(c, 40, 20); const m = moved(g0, await rectOf('#gapT5')), kept = await p.evaluate(() => window.HE.S.sel.length === 1 && window.HE.S.sel[0].id === 'gapT5');
+    await undoKey(); const back = moved(g0, await rectOf('#gapT5'));
+    await p.evaluate(() => { window.HE.setSel([]); window.HE.S.doc.querySelector('#gapT5').remove(); });
+    const r = gap && m.dx > 20 && kept && back.dx === 0 && back.dy === 0; if (!r) console.log('  T5 진단', { gap, m, kept, back }); return r;
+  });
+  await test('범위 선택 후속 T6: 고른 것의 안쪽을 Shift+클릭하면 고른 것이 빠지고 안쪽 요소는 더해지지 않음', async () => {
+    await clear(); await clickEl('h1.t'); const before = await selNames(); const c = await at('h1.t .em');
+    await p.keyboard.down('Shift'); await p.mouse.click(c.x, c.y); await p.keyboard.up('Shift'); await p.waitForTimeout(80); const after = await selNames();
+    await clickEl('.box'); const b1 = await selNames(); const d = await at('.box'); await p.keyboard.down('Shift'); await p.mouse.click(d.x, d.y); await p.keyboard.up('Shift'); await p.waitForTimeout(80); const b2 = await selNames();
+    return before === 't' && after === '' && b1 === 'box' && b2 === '';
+  });
+  await test('범위 선택 후속 T7: 표 하나만 고른 채 칸을 움직이지 않고 누르면 그 칸으로 내려감', async () => {
+    await clear(); await marquee(['table']); const before = await selNames(); await p.waitForTimeout(450); await clickEl('td'); await p.waitForTimeout(450);
+    const after = await p.evaluate(() => window.HE.S.sel.length === 1 && window.HE.S.sel[0] === window.HE.S.doc.querySelector('td'));
+    return before === 'TABLE' && after;
+  });
+  await test('범위 선택 후속 T8: 칸만 고른 채 끌면 표·칸이 움직이지 않음', async () => {
+    await clear(); await clickEl('td'); const one = await p.evaluate(() => window.HE.S.sel.length === 1 && window.HE.S.sel[0].tagName === 'TD');
+    const t0 = await rectOf('table'), c0 = await rectOf('td'), u0 = await p.evaluate(() => window.HE.S.undo.length); await p.waitForTimeout(450); await dragAt(await at('td'), 40, 20);
+    const mt = moved(t0, await rectOf('table')), mc = moved(c0, await rectOf('td')), u1 = await p.evaluate(() => window.HE.S.undo.length);
+    const r = one && mt.dx === 0 && mt.dy === 0 && mc.dx === 0 && mc.dy === 0 && u0 === u1; if (!r) console.log('  T8 진단', { one, mt, mc, u0, u1 }); return r;
+  });
+  await test('범위 선택 후속 T4: 파일 이름 칸을 누른 뒤 무대 요소를 누르면 Delete로 지워지고 Ctrl+Z로 되살아남', async () => {
+    await clear(); await p.click('#fname'); const inName = await p.evaluate(() => document.activeElement.id === 'fname');
+    await clickEl('.box'); const out = await p.evaluate(() => document.activeElement.id !== 'fname');
+    await p.keyboard.press('Delete'); await p.waitForTimeout(100); const gone = await p.evaluate(() => !window.HE.S.doc.querySelector('section#a > .box:not([data-step])'));
+    await undoKey(); const back = await p.evaluate(() => !!window.HE.S.doc.querySelector('section#a > .box:not([data-step])'));
+    const r = inName && out && gone && back; if (!r) console.log('  T4 진단', { inName, out, gone, back }); return r;
+  });
+  await test('범위 선택 후속 T9: 글자 크기 칸 뒤 Delete, 이름 칸은 무대를 누르면 확정, 칸 안 Ctrl+Z는 칸 글자만', async () => {
+    await clear(); await clickEl('.flow'); await p.click('#iSize'); const inSize = await p.evaluate(() => document.activeElement.id === 'iSize');
+    await clickEl('.flow'); await p.keyboard.press('Delete'); await p.waitForTimeout(100); const gone = await p.evaluate(() => !window.HE.S.doc.querySelector('.flow'));
+    await p.evaluate(() => window.HE.undo()); await p.waitForTimeout(100); const back = await p.evaluate(() => !!window.HE.S.doc.querySelector('.flow'));
+    // ⓒ 무대를 누르기 전 이름 칸 안의 Ctrl+Z는 칸 글자를 되돌리고 편집기 되돌리기는 돌지 않는다
+    const keep = await p.evaluate(() => window.HE.S.saveName), name0 = await p.inputValue('#fname'), u0 = await p.evaluate(() => window.HE.S.undo.length);
+    await p.click('#fname'); await p.keyboard.press('End'); await p.keyboard.type('XY'); const typed = await p.inputValue('#fname');
+    await p.keyboard.press('ControlOrMeta+z'); await p.waitForTimeout(80); const undone = await p.inputValue('#fname'), u1 = await p.evaluate(() => window.HE.S.undo.length);
+    // ⓑ 새 이름을 쳐 넣고 무대를 누르면 이름이 확정된다
+    await p.fill('#fname', '새이름T9'); await clickEl('.flow'); const named = await p.evaluate(() => window.HE.fileName());
+    await p.evaluate((k) => { window.HE.S.saveName = k; }, keep); await p.evaluate(() => { const f = document.querySelector('#fname'); f.value = window.HE.fileName().replace(/\.html?$/i, ''); });
+    const r = inSize && gone && back && typed === name0 + 'XY' && undone === name0 && u0 === u1 && named === '새이름T9.html';
+    if (!r) console.log('  T9 진단', { inSize, gone, back, name0, typed, undone, u0, u1, named }); return r;
+  });
+  await clear();
+}
 await test('여러 요소 왼쪽 맞춤', async () => { const a = await at('.box'); const c = await at('h1.t'); await p.mouse.click(a.x, a.y); await p.keyboard.down('Shift'); await p.mouse.click(c.x, c.y); await p.keyboard.up('Shift'); await more('#mArr'); await p.click('#bLeft'); await p.waitForTimeout(80); const same = await p.evaluate(() => { const S = window.HE.S, x = S.doc.querySelector('.box').getBoundingClientRect().left, y = S.doc.querySelector('h1.t').getBoundingClientRect().left; return Math.abs(x - y) < 1; }); await p.click('#bUndo'); return same; });
 await test('그림 바꾸기', async () => { await clickEl('img'); await p.setInputFiles('#iImg', pngPath); await p.waitForTimeout(250); const h = await saved(); await p.click('#bUndo'); await p.waitForTimeout(80); return h.includes('object-fit: contain') && h.includes('mP8z/C/HgAGgwJ/'); });
 await test('그림 추가', async () => { await p.setInputFiles('#iImgAdd', pngPath); await p.waitForTimeout(250); const h = await saved(); await p.click('#bUndo'); await p.waitForTimeout(80); return (h.match(/<img/g) || []).length === 2; });

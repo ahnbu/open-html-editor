@@ -94,6 +94,9 @@ function hookEvents(win) {
   let dragging = null, press = null, lastUp = 0, cycledFrom = null, marq = null;
   win.addEventListener('pointerdown', (e) => {
     if (!block(e)) return; if (S.editing && S.editing.contains(e.target)) return;
+    // 무대를 누르면 바깥 입력칸(파일 이름·글자 크기 등)의 커서를 푼다. 아래 preventDefault 때문에 커서가 그 칸에 남아
+    // Delete·Ctrl+Z가 칸으로 가던 문제(계획 _docs/20261125_01 3-2). 이름 칸은 blur 때 기존 change 처리(이름 확정)가 돈다.
+    { const a = document.activeElement; if (a && a !== document.body && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) a.blur(); }
     if (marq) { marq = null; S.marq = null; } // 틀 밖에서 떼어 끝나지 못한 범위 선택은 버린다
     const q = pt(e);
     // 코멘트 모드: 누른 자리에 코멘트를 단다. 요소는 옮기지 않는다.
@@ -102,6 +105,17 @@ function hookEvents(win) {
     // 아래로 내려가 고른 요소는 그 자리에서 다시 눌러도 유지해야 끌어 옮길 수 있다.
     const low = S.sel.length === 1 && S.cycled === S.sel[0] && layersAt(q.clientX, q.clientY).includes(S.sel[0]) ? S.sel[0] : null;
     if (low) t = low;
+    // 고른 묶음을 누르면 묶음 그대로 끈다(계획 _docs/20261125_01 3-1). 범위 선택은 바깥 요소(표)를 고르는데 누른 자리는 안쪽(표 칸)이라
+    // 선택이 칸 하나로 바뀌고 아무것도 옮겨지지 않았다. 고른 요소 자신·안쪽 요소·고른 요소 상자 안의 빈 틈을 누르면 선택을 유지한다.
+    const own = t && S.sel.find((s) => s === t || s.contains(t));
+    if (e.shiftKey && own) { e.preventDefault(); setSel(S.sel.filter((x) => x !== own)); S.cycled = null; press = null; return; } // Shift: 고른 것을 뺀다(안쪽 요소를 더하지 않는다)
+    const empty = !t || (!low && emptyAt(q.clientX, q.clientY));
+    const grab = !e.shiftKey && (own || (empty && S.sel.find((s) => { const r = visRect(s); return q.clientX >= r.left && q.clientX <= r.right && q.clientY >= r.top && q.clientY <= r.bottom; })));
+    if (grab) {
+      e.preventDefault(); press = { x: q.clientX, y: q.clientY, again: S.sel.length === 1 && S.sel[0] === t, grab, t: own ? t : null };
+      if (!grab.matches('td,th')) dragging = { x: q.clientX, y: q.clientY, moved: false, els: S.sel.slice(), last: { x: 0, y: 0 }, s: scaleOf(grab) }; // 칸만 옮기면 표가 깨진다
+      return;
+    }
     // 빈 곳(장·쪽 바탕)을 누르면 범위 선택을 시작한다. 그냥 떼면 지금처럼 선택 해제, Shift를 누른 채면 기존 선택에 더한다(2026-11-25 사장님 결정).
     if (!t || (!low && emptyAt(q.clientX, q.clientY))) { e.preventDefault(); if (!e.shiftKey) clearSel(); S.cycled = null; press = null; marq = { x: q.clientX, y: q.clientY, base: e.shiftKey ? S.sel.slice() : [], moved: false, id: e.pointerId }; try { S.doc.documentElement.setPointerCapture(e.pointerId); } catch (er) { /* 잡기 실패해도 틀 안에서는 된다 */ } return; }
     e.preventDefault();
@@ -135,11 +149,15 @@ function hookEvents(win) {
     if (moved) end(T('op.move'), dragging.els); dragging = null;
     // 이미 고른 요소를 움직이지 않고 다시 누르면 아래 요소로. 더블클릭의 두 번째 누름은 빼고 센다.
     const now = e.timeStamp, quick = now - lastUp < 400; lastUp = now;
-    if (e.type === 'pointerup' && press && press.again && !moved && !quick && !S.editing && S.sel.length === 1) {
+    // 고른 묶음을 움직이지 않고 누르면: 여럿이면 누른 것 하나로 좁히고, 하나면 누른 자리의 안쪽 요소로 내려간다(표 → 칸).
+    // 안쪽 내려가기는 아래 순환보다 먼저 본다 — 바탕·테두리 없는 표는 layersAt 목록에 없어 순환이 듣지 않는다(계획 3-1의 2).
+    const narrow = e.type === 'pointerup' && press && press.grab && !moved && !S.editing && S.sel.includes(press.grab) ? (S.sel.length > 1 ? press.grab : press.t && press.t !== press.grab && press.grab.contains(press.t) ? press.t : null) : null;
+    if (narrow) { setSel([narrow]); S.cycled = null; }
+    else if (e.type === 'pointerup' && press && press.again && !moved && !quick && !S.editing && S.sel.length === 1) {
       const list = layersAt(press.x, press.y), i = list.indexOf(S.sel[0]);
       // 더블클릭의 첫 누름도 여기로 온다. 내려가 고른 글자를 더블클릭하면 그 글자를 고쳐야 하므로 직전 요소를 기억한다.
       if (list.length > 1 && i >= 0) { cycledFrom = S.cycled === S.sel[0] ? { el: S.sel[0], at: now } : null; const next = list[(i + 1) % list.length]; setSel([next]); S.cycled = next; }
-    } else if (e.type === 'pointerup' && press && !press.again && !moved && !S.editing && S.sel.length === 1 && layersAt(press.x, press.y).length > 1) ui().onLayers();
+    } else if (e.type === 'pointerup' && press && !press.again && !press.grab && !moved && !S.editing && S.sel.length === 1 && layersAt(press.x, press.y).length > 1) ui().onLayers();
     press = null;
   };
   win.addEventListener('pointerup', up, true); win.addEventListener('pointercancel', up, true);
