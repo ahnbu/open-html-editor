@@ -354,7 +354,12 @@ async function roundTrip(file, sel) {
   const dropAsk = await p.waitForSelector('#dlgSwitch[open]', { timeout: 3000 }).then(() => true).catch(() => false);
   if (dropAsk) { await p.click('#dlgSwitch button[value="discard"]'); await p.waitForFunction(() => window.HE.S.name === 'dropped.html').catch(() => {}); }
   const dropped = await p.evaluate(() => window.HE.S.name === 'dropped.html');
-  t('8e-3 unsaved changes: confirm (Cancel focused) — cancel keeps, discard opens, save-and-open downloads then opens, drop on the editor asks too', d1 && focusCancel && kept && d2 && savedName === 'resume_수정.html' && d3 && dropAsk && dropped);
+  t('8e-3 unsaved changes: confirm (Cancel focused) — cancel keeps, discard opens, save-and-open downloads then opens, drop on the editor asks too', d1 && focusCancel && kept && d2 && /^resume_\d{8}_\d{4}\.html$/.test(savedName) && d3 && dropAsk && dropped);
+  // 8e-5 저장 이름 = 원본 이름 + 저장 시각(_YYYYMMDD_HHMM). 다시 연 파일의 예전 시각·_수정·(1)은 떼고 새 시각을 붙인다(2026-11-25)
+  const names = await p.evaluate(() => { const H = window.HE, S = H.S, keep = [S.name, S.saveName]; const st = H.saveStamp(); const out = {};
+    for (const n of ['보고서.html', '보고서_수정.html', '보고서_20261101_0930.html', '보고서_20261101_0930 (1).html', '보고서_수정_20261101_0930.html']) { S.name = n; S.saveName = ''; out[n] = H.fileName(); }
+    S.saveName = '내이름'; out.own = H.fileName(); [S.name, S.saveName] = keep; return { out, st }; });
+  t('8e-5 save name: original name + save time; old stamps, _수정 and (1) are dropped, a name typed in the title bar is kept', /^\d{8}_\d{4}$/.test(names.st) && Object.entries(names.out).every(([k, v]) => k === 'own' ? v === '내이름.html' : v === '보고서_' + names.st + '.html'));
   // 8e-4 글자 입력 중(확정 전)에 다른 파일을 고르면 확인 창이 뜨고, 취소하면 입력한 글자가 남는다
   await p.evaluate((h) => window.HE.openText(h, 'typed.html', new Map()), DECK); await p.waitForTimeout(500);
   await p.evaluate(() => { const S = window.HE.S, h = S.doc.getElementById('t'); window.HE.startText(h); const r = S.doc.createRange(); r.selectNodeContents(S.editing); r.collapse(false); const sel = S.win.getSelection(); sel.removeAllRanges(); sel.addRange(r); S.doc.execCommand('insertText', false, ' typed'); });

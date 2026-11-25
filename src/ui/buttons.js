@@ -19,7 +19,9 @@ function fitName(){const f=$('#fname'),cs=getComputedStyle(f);measure.font=cs.fo
  const t=$('#title'),tc=getComputedStyle(t),gap=parseFloat(tc.columnGap)||8,kids=[...t.children].filter((e)=>e!==f&&e.offsetWidth>0);
  const used=kids.reduce((s,e)=>s+(e.id==='bar'?e.scrollWidth+16:e.getBoundingClientRect().width),0)+gap*kids.length+parseFloat(tc.paddingLeft)+parseFloat(tc.paddingRight);
  const free=Math.floor(t.clientWidth-used);f.style.width=Math.max(90,Math.min(420,Math.ceil(w),free))+'px'}
-$('#fname').addEventListener('input',fitName);addEventListener('resize',fitName);$('#fname').addEventListener('keydown',(e)=>{e.stopPropagation();if(e.key==='Enter'||e.key==='Escape'){if(e.key==='Escape')e.target.value=H.fileName().replace(/\.html?$/i,'');e.target.blur()}});
+$('#fname').addEventListener('input',fitName);addEventListener('resize',fitName);
+// 고른 것·글자 고치기에 따라 막대 버튼이 보였다 숨었다 한다 → 그때마다 이름 칸 폭을 다시 맞춘다(저장 시각이 붙어 이름이 길어진 뒤 ⋯·공유 버튼이 겹치던 문제, 2026-11-25)
+{let fitQ=0;new MutationObserver(()=>{if(fitQ)return;fitQ=requestAnimationFrame(()=>{fitQ=0;fitName()})}).observe($('#bar'),{subtree:true,attributes:true,attributeFilter:['class','hidden','style','disabled']})}$('#fname').addEventListener('keydown',(e)=>{e.stopPropagation();if(e.key==='Enter'||e.key==='Escape'){if(e.key==='Escape')e.target.value=H.fileName().replace(/\.html?$/i,'');e.target.blur()}});
 $('#fname').addEventListener('change',(e)=>{e.target.value=H.rename(e.target.value).replace(/\.html?$/i,'');fitName();msg(tt('msg.fileName',{name:H.fileName()}))});
 // 왼쪽 목록 접기: 고른 상태는 이 브라우저에 기억한다(메뉴 접기·펼치기는 ribbon.js, 기억값 he-menu)
 const pref=(k,v)=>{try{if(v===undefined)return localStorage.getItem('he-'+k);localStorage.setItem('he-'+k,v)}catch(e){return null}};

@@ -97,8 +97,16 @@ async function shareSave() {
   return { file: name, handoff: S.lastShareHandoff };
 }
 api.shareSave = shareSave;
-// 저장할 파일 이름. 처음에는 원본 이름 뒤에 _수정을 붙여 원본을 덮지 않는다. 제목 막대에서 바꾼다.
-const fileName = () => (S.saveName || S.name.replace(/\.html?$/i, '') + T('file.suffix')).replace(/\.html?$/i, '') + '.html';
+// 저장할 파일 이름. 원본 이름 뒤에 저장 시각(_YYYYMMDD_HHMM, 내 컴퓨터 시각)을 붙여 원본을 덮지 않고 언제 저장한 판인지 남긴다(2026-11-25 사장님 결정).
+// 다시 열어 고친 파일은 붙어 있던 시각·예전 _수정·브라우저가 붙인 (1)을 떼고 새 시각을 붙인다 — 겹겹이 쌓이지 않게. 제목 막대에서 직접 정한 이름은 그대로 쓴다.
+const saveStamp = (d = new Date()) => { const z = (n) => String(n).padStart(2, '0'); return '' + d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '_' + z(d.getHours()) + z(d.getMinutes()); };
+function baseName() {
+  const old = ['_edit', T('file.suffix')]; let n = S.name.replace(/\.html?$/i, ''), prev;
+  do { prev = n; n = n.replace(/\s*\(\d+\)$/, '').replace(/_\d{8}_\d{4}$/, ''); for (const s of old) if (s && n.endsWith(s) && n.length > s.length) n = n.slice(0, -s.length); } while (n !== prev);
+  return n || 'document';
+}
+const fileName = () => (S.saveName || baseName() + '_' + saveStamp()).replace(/\.html?$/i, '') + '.html';
+api.saveStamp = saveStamp;
 api.fileName = fileName;
 api.rename = (n) => { n = String(n || '').trim().replace(/[\\/:*?"<>|]/g, '').replace(/\.html?$/i, ''); if (!n) return fileName(); S.saveName = n; if (S.handle && S.handle.name !== n + '.html') { S.handle = null; S.handleStamp = 0; } return fileName(); };
 // 다른 이름으로 저장으로 고른 파일이 있으면 그 파일에 바로 쓰고, 없으면 내려받는다.

@@ -17,6 +17,12 @@ function under(e) {
   for (const x of stack) { if (isSlideRoot(x)) break; if (!visibleBox(x)) continue; if (!first) { first = x; if (!empty(x)) return x; } else if (holds(x)) return x; }
   return first || e.target;
 }
+// 그 자리에 보이는 것(글자·그림·바탕색·테두리)이 하나도 없으면 빈 곳이다 — 장·쪽 바탕, 문단 사이 틈, 쪽 나누기 도구가 깐 투명 상자(Paged.js 여백 칸 등).
+// 빈 곳을 누르면 투명 상자를 고르지 않고 범위 선택을 시작한다(2026-11-25).
+function emptyAt(x, y) {
+  for (const n of S.doc.elementsFromPoint(x, y)) { if (isSlideRoot(n)) return true; if (visibleBox(n)) return false; }
+  return true;
+}
 // 그 자리에 겹친 요소를 위에서부터. 같은 자리를 다시 누르면 다음 요소로 내려간다.
 function layersAt(x, y) {
   const out = [];
@@ -46,6 +52,23 @@ function textByBox(x, y) {
   const p = best && pick(best); return p && p.tagName !== 'IMG' ? p : null;
 }
 api.layersAt = layersAt;
+// 범위 선택(2026-11-25): 끈 사각형 안에 완전히 들어간 요소만 고른다(파워포인트·구글 슬라이드 방식).
+// 걸치기만 해도 고르면 쪽 상자·배경·바깥 묶음 상자가 자꾸 딸려 온다. 안에 든 것끼리는 바깥 것만 남겨 같은 내용을 두 번 고르지 않는다.
+const boxOf = (x1, y1, x2, y2) => { const left = Math.min(x1, x2), top = Math.min(y1, y2), right = Math.max(x1, x2), bottom = Math.max(y1, y2); return { left, top, right, bottom, width: right - left, height: bottom - top }; };
+function inBox(r) {
+  const units = slides().length ? slides() : [S.doc.body], hit = [];
+  for (const u of units) {
+    const ur = u.getBoundingClientRect(); if (ur.width < 1 || ur.right < r.left || ur.left > r.right || ur.bottom < r.top || ur.top > r.bottom) continue;
+    for (const e of u.querySelectorAll('*')) {
+      if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|BR)$/.test(e.tagName) || (e.closest('svg') && e.tagName.toLowerCase() !== 'svg') || isSlideRoot(e)) continue;
+      const b = e.getBoundingClientRect(); if (b.width <= 1 || b.height <= 1 || b.left < r.left || b.top < r.top || b.right > r.right || b.bottom > r.bottom) continue;
+      if (pick(e) !== e) continue;
+      if (visibleBox(e) || e.textContent.trim() || e.querySelector('img,svg')) hit.push(e);
+    }
+  }
+  return hit.filter((e) => !hit.some((a) => a !== e && a.contains(e)));
+}
+api.inBox = inBox;
 // 장표 확대(계획 _docs/20261109_03 2번)의 엔진 차이 보정. 사파리(webkit)는 확대된 무대 안에서 요소 위치(getBoundingClientRect·elementsFromPoint)를
 // 마우스 이벤트 좌표(clientX)보다 1/배율 작은 단위로 준다(2026-11-09 실측). 크롬·파이어폭스는 둘이 같아 1이다.
 // 배율 1일 때의 「요소 위치 ÷ CSS 크기」를 기준으로 잡아, 덱 자체에 zoom이 걸린 문서도 기준이 같아 1로 남는다.
@@ -68,9 +91,10 @@ function hookEvents(win) {
   win.addEventListener('dragover', (e) => { if (hasFiles(e)) { e.preventDefault(); const u = ui(); if (u.onFileDrag) u.onFileDrag(true); } }, true);
   win.addEventListener('drop', (e) => { if (!hasFiles(e)) return; e.preventDefault(); e.stopImmediatePropagation(); const u = ui(); if (u.onFileDrag) u.onFileDrag(false); u.onDropFiles(e.dataTransfer); }, true);
   const block = (e) => { if (S.bypass || S.mode === 'view') return false; e.stopImmediatePropagation(); return true; };
-  let dragging = null, press = null, lastUp = 0, cycledFrom = null;
+  let dragging = null, press = null, lastUp = 0, cycledFrom = null, marq = null;
   win.addEventListener('pointerdown', (e) => {
     if (!block(e)) return; if (S.editing && S.editing.contains(e.target)) return;
+    if (marq) { marq = null; S.marq = null; } // 틀 밖에서 떼어 끝나지 못한 범위 선택은 버린다
     const q = pt(e);
     // 코멘트 모드: 누른 자리에 코멘트를 단다. 요소는 옮기지 않는다.
     if (S.mode === 'comment') { e.preventDefault(); finishText(); const c = addComment(q.clientX, q.clientY, pick(under(q))); if (c) ui().onComments(c.id); return; }
@@ -78,7 +102,8 @@ function hookEvents(win) {
     // 아래로 내려가 고른 요소는 그 자리에서 다시 눌러도 유지해야 끌어 옮길 수 있다.
     const low = S.sel.length === 1 && S.cycled === S.sel[0] && layersAt(q.clientX, q.clientY).includes(S.sel[0]) ? S.sel[0] : null;
     if (low) t = low;
-    if (!t) { clearSel(); S.cycled = null; press = null; return; }
+    // 빈 곳(장·쪽 바탕)을 누르면 범위 선택을 시작한다. 그냥 떼면 지금처럼 선택 해제, Shift를 누른 채면 기존 선택에 더한다(2026-11-25 사장님 결정).
+    if (!t || (!low && emptyAt(q.clientX, q.clientY))) { e.preventDefault(); if (!e.shiftKey) clearSel(); S.cycled = null; press = null; marq = { x: q.clientX, y: q.clientY, base: e.shiftKey ? S.sel.slice() : [], moved: false, id: e.pointerId }; try { S.doc.documentElement.setPointerCapture(e.pointerId); } catch (er) { /* 잡기 실패해도 틀 안에서는 된다 */ } return; }
     e.preventDefault();
     if (e.shiftKey) { setSel(S.sel.includes(t) ? S.sel.filter((x) => x !== t) : [...S.sel, t]); S.cycled = null; press = null; return; }
     press = { x: q.clientX, y: q.clientY, again: S.sel.length === 1 && S.sel[0] === t };
@@ -88,6 +113,8 @@ function hookEvents(win) {
   }, true);
   win.addEventListener('pointermove', (e) => {
     if (S.mode === 'view') return; e.stopImmediatePropagation();
+    if (marq && !e.buttons) { marq = null; S.marq = null; ui().syncOverlay(); } // 버튼을 뗀 뒤라면(틀 밖에서 뗌) 범위 선택을 끝낸다
+    if (marq) { const q = pt(e); if (!marq.moved && Math.abs(q.clientX - marq.x) + Math.abs(q.clientY - marq.y) < 4) return; marq.moved = true; S.marq = boxOf(marq.x, marq.y, q.clientX, q.clientY); ui().syncOverlay(); return; }
     if (!dragging) return;
     const q = pt(e);
     if (!dragging.moved && Math.abs(q.clientX - dragging.x) + Math.abs(q.clientY - dragging.y) < 4) return;
@@ -102,6 +129,8 @@ function hookEvents(win) {
   }, true);
   const up = (e) => {
     if (S.mode === 'view') return; e.stopImmediatePropagation();
+    if (marq) { const m = marq, r = S.marq; marq = null; S.marq = null; try { S.doc.documentElement.releasePointerCapture(m.id); } catch (er) { /* 이미 풀림 */ }
+      if (m.moved && r) { const got = inBox(r).filter((x) => !m.base.includes(x)); setSel([...m.base, ...got]); } else ui().syncOverlay(); press = null; return; }
     const moved = dragging && dragging.moved;
     if (moved) end(T('op.move'), dragging.els); dragging = null;
     // 이미 고른 요소를 움직이지 않고 다시 누르면 아래 요소로. 더블클릭의 두 번째 누름은 빼고 센다.

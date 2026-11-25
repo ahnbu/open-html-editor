@@ -65,6 +65,20 @@ await test('요소 끌어 옮기기(절대 위치)', async () => { const c = awa
 await test('요소 끌어 옮기기(흐름 배치)', async () => { const c = await clickEl('.flow'); await p.mouse.move(c.x, c.y); await p.mouse.down(); await p.mouse.move(c.x + 30 * c.k, c.y, { steps: 4 }); await p.mouse.up(); const h = await saved(); return /class="flow" style="[^"]*position: relative/.test(h); });
 await test('요소 복제와 되돌리기', async () => { await clickEl('.flow'); await more('#bDup'); await p.waitForTimeout(80); const n = (await saved()).split('흐름 글자').length - 1; await p.click('#bUndo'); await p.waitForTimeout(80); const m = (await saved()).split('흐름 글자').length - 1; return n === 2 && m === 1; });
 await test('맨 앞', async () => { await clickEl('.flow'); await more('#mArr'); await p.click('#bFront'); const h = await saved(); await p.click('#bUndo'); return /z-index: \d/.test(h); });
+// 범위 선택(2026-11-25): 빈 곳에서 끌면 사각형 안에 완전히 든 요소만 고르고, Shift를 누른 채 끌면 더하고, 빈 곳 클릭이면 풀린다
+await test('범위 선택: 빈 곳 끌기·완전 포함·Shift 더하기·빈 곳 클릭 해제', async () => {
+  // 끄는 사각형은 요소의 실제 자리로 잡는다 — 고정 좌표는 글꼴 폭이 다른 환경(CI 리눅스)에서 어긋났다
+  const around = (sels, pad) => p.evaluate(([sels, pad]) => { const S = window.HE.S, f = document.querySelector('#stage').getBoundingClientRect(); const rs = sels.map((s) => S.doc.querySelector(s).getBoundingClientRect());
+    const l = Math.min(...rs.map((r) => r.left)) - pad, t = Math.min(...rs.map((r) => r.top)) - pad, rr = Math.max(...rs.map((r) => r.right)) + pad, b = Math.max(...rs.map((r) => r.bottom)) + pad;
+    return [{ x: f.left + l, y: f.top + t }, { x: f.left + rr, y: f.top + b }]; }, [sels, pad]);
+  const sp = (x, y) => p.evaluate(([x, y]) => { const S = window.HE.S, s = S.doc.querySelector('.slide.on'), f = document.querySelector('#stage').getBoundingClientRect(), r = s.getBoundingClientRect(); return { x: f.left + r.left + r.width * x, y: f.top + r.top + r.height * y }; }, [x, y]);
+  const drag = async (a, z, shift) => { if (shift) await p.keyboard.down('Shift'); await p.mouse.move(a.x, a.y); await p.mouse.down(); await p.mouse.move((a.x + z.x) / 2, (a.y + z.y) / 2, { steps: 4 }); await p.mouse.move(z.x, z.y, { steps: 4 }); const box = await p.evaluate(() => !!document.querySelector('#overlay .marq')); await p.mouse.up(); if (shift) await p.keyboard.up('Shift'); await p.waitForTimeout(80); return box; };
+  const names = () => p.evaluate(() => window.HE.S.sel.map((e) => e.className || e.tagName).sort().join(','));
+  const [a1, z1] = await around(['h1.t', '.box'], 8); const shown = await drag(a1, z1); const one = await names();
+  const [a2, z2] = await around(['img'], 8); await drag(a2, z2, true); const two = await names();
+  const e = await sp(0.97, 0.05); await p.mouse.click(e.x, e.y); await p.waitForTimeout(80); const none = await p.evaluate(() => window.HE.S.sel.length);
+  return shown && one === 'box,t' && two === 'IMG,box,t' && none === 0;
+});
 await test('여러 요소 왼쪽 맞춤', async () => { const a = await at('.box'); const c = await at('h1.t'); await p.mouse.click(a.x, a.y); await p.keyboard.down('Shift'); await p.mouse.click(c.x, c.y); await p.keyboard.up('Shift'); await more('#mArr'); await p.click('#bLeft'); await p.waitForTimeout(80); const same = await p.evaluate(() => { const S = window.HE.S, x = S.doc.querySelector('.box').getBoundingClientRect().left, y = S.doc.querySelector('h1.t').getBoundingClientRect().left; return Math.abs(x - y) < 1; }); await p.click('#bUndo'); return same; });
 await test('그림 바꾸기', async () => { await clickEl('img'); await p.setInputFiles('#iImg', pngPath); await p.waitForTimeout(250); const h = await saved(); await p.click('#bUndo'); await p.waitForTimeout(80); return h.includes('object-fit: contain') && h.includes('mP8z/C/HgAGgwJ/'); });
 await test('그림 추가', async () => { await p.setInputFiles('#iImgAdd', pngPath); await p.waitForTimeout(250); const h = await saved(); await p.click('#bUndo'); await p.waitForTimeout(80); return (h.match(/<img/g) || []).length === 2; });

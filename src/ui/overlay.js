@@ -11,7 +11,10 @@ function stageOrigin(){const f=$('#stage').getBoundingClientRect(),c=$('#canvas'
 function toCanvas(r){const {ox,oy,z}=stageOrigin();return {left:ox+r.left*z,top:oy+r.top*z,width:r.width*z,height:r.height*z,right:ox+r.right*z,bottom:oy+r.bottom*z}}
 // 덧씌움은 #canvas 전체를 덮으므로, 무대 칸(#stageWrap)의 보이는 영역 밖(노트 칸·회색 여백)에 그려진 것은 잘라 낸다
 function clipOverlay(o){const w=$('#stageWrap'),c=$('#canvas').getBoundingClientRect(),r=w.getBoundingClientRect();const t=r.top-c.top+w.clientTop,l=r.left-c.left+w.clientLeft;o.style.clipPath=`inset(${Math.max(0,t)}px ${Math.max(0,c.width-(l+w.clientWidth))}px ${Math.max(0,c.height-(t+w.clientHeight))}px ${Math.max(0,l)}px)`}
-function sync(){const o=$('#overlay');o.innerHTML='';if(!S.doc)return;clipOverlay(o);drawPins(o);if(!S.sel.length)return;
+function sync(){const o=$('#overlay');o.innerHTML='';if(!S.doc)return;clipOverlay(o);drawPins(o);
+ // 범위 선택 중인 사각형(본체 input.js의 S.marq, 무대 안 좌표)
+ if(S.marq){const r=toCanvas(S.marq),m=document.createElement('div');m.className='marq';m.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;o.appendChild(m)}
+ if(!S.sel.length)return;
  S.sel.forEach((e,idx)=>{if(!e.isConnected)return;const r=toCanvas(H.visRect(e));const b=document.createElement('div');b.className='box';b.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;o.appendChild(b);
   if(idx===0&&S.sel.length===1){if(!S.editing){const tag=document.createElement('div');tag.className='tag';const img=e.tagName==='IMG';tag.textContent=tt(img?'tag.image':'tag.text');const top=r.top-28;tag.style.cssText=`left:${r.left}px;top:${top<2?r.bottom+6:top}px`;o.appendChild(tag);
     if(!e.closest('td,th'))for(const [n,x,y] of [['nw',0,0],['ne',1,0],['sw',0,1],['se',1,1],['e',1,.5]]){const h=document.createElement('div');h.className='hd';/* 손잡이는 요소 바깥에 둔다. 얇은 글자 줄의 클릭을 막지 않게 한다. */h.style.left=Math.max(0,Math.min(o.clientWidth-12,r.left+r.width*x+(x===1?2:-12)))+'px';h.style.top=Math.max(0,Math.min(o.clientHeight-12,r.top+r.height*y+(y===0?-12:y===1?2:-5)))+'px';h.style.cursor=n+'-resize';h.dataset.h=n;o.appendChild(h)}}}});}
